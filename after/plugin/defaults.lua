@@ -17,6 +17,5 @@ vim.keymap.set("n", "N", "Nzzzv")
 
 vim.keymap.set("x", "<leader>p", "\"_dp")
 vim.cmd [[
-	set winbar=%f
 	set laststatus=3
 ]]
