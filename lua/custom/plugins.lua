@@ -29,7 +29,7 @@ return function(use)
 	})
 
 	use({
-		'akinsho/toggleterm.nvim',
+		"akinsho/toggleterm.nvim",
 		config = function()
 			require('toggleterm').setup {
 				direction = 'float',
@@ -43,13 +43,20 @@ return function(use)
 	})
 
 	use({
-		"preservim/tagbar"
-	})
-
-	use({
 		"windwp/nvim-autopairs",
 		config = function()
 			require("nvim-autopairs").setup ({})
+		end,
+	})
+
+	use({
+		"nvim-tree/nvim-web-devicons"
+	})
+
+	use({
+		"nvim-tree/nvim-tree.lua",
+		config = function()
+			require("nvim-tree").setup ({})
 		end,
 	})
 end
