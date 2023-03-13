@@ -15,6 +15,6 @@ vim.keymap.set("n", "N", "Nzzzv")
 
 vim.keymap.set("x", "<leader>p", "\"_dp")
 vim.cmd [[
-        tnoremap <C-c> <C-\><C-n>
+        tnoremap <C-c>c <C-\><C-n>
 	set laststatus=3
 ]]
