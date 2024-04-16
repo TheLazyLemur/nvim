@@ -1,3 +1,6 @@
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
@@ -52,10 +55,10 @@ vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper win
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
-vim.keymap.set("i", "jk", "<ESC>" )
-vim.keymap.set("i", "kj", "<ESC>" )
-vim.keymap.set("n", "n", "nzzzv" )
-vim.keymap.set("n", "N", "Nzzzv" )
+vim.keymap.set("i", "jk", "<ESC>")
+vim.keymap.set("i", "kj", "<ESC>")
+vim.keymap.set("n", "n", "nzzzv")
+vim.keymap.set("n", "N", "Nzzzv")
 
 vim.keymap.set('c', '<M-h>', '<Left>', { silent = false, desc = 'Left' })
 vim.keymap.set('c', '<M-l>', '<Right>', { silent = false, desc = 'Right' })
@@ -70,7 +73,7 @@ vim.keymap.set('t', '<M-j>', '<Down>', { desc = 'Down' })
 vim.keymap.set('t', '<M-k>', '<Up>', { desc = 'Up' })
 vim.keymap.set('t', '<M-l>', '<Right>', { desc = 'Right' })
 
-vim.keymap.set({"x", "o" }, "=c", "gc", { remap = true })
+vim.keymap.set({ "x", "o" }, "=c", "gc", { remap = true })
 vim.keymap.set({ "n" }, "=c", "gcc", { remap = true })
 
 vim.api.nvim_create_autocmd("TextYankPost", {
@@ -110,6 +113,13 @@ require("gitsigns").setup({
     changedelete = { text = "~" },
   },
 })
+
+add({
+  source = "stevearc/oil.nvim",
+  depends = { "nvim-tree/nvim-web-devicons" },
+})
+require("oil").setup()
+vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 
 add({
   source = "nvim-telescope/telescope.nvim",
