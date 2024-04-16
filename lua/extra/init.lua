@@ -4,6 +4,7 @@ local plugins = {
   require("extra.plugins.trouble"),
   require("extra.plugins.neotest"),
   require("extra.plugins.flash"),
+  require("extra.plugins.bufferline"),
 }
 
 for _, plugin in ipairs(plugins) do
