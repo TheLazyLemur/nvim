@@ -5,6 +5,7 @@ local plugins = {
   require("extra.plugins.neotest"),
   require("extra.plugins.flash"),
   require("extra.plugins.bufferline"),
+  require("extra.plugins.nvim_tree"),
 }
 
 for _, plugin in ipairs(plugins) do
