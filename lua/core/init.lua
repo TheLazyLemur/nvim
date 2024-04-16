@@ -84,6 +84,10 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   end,
 })
 
+require("modules.bookmarks").setup()
+vim.keymap.set("n", "<leader>ba", require("modules.bookmarks").bookmark_file)
+vim.keymap.set("n", "<leader>bs", require("modules.bookmarks").show_selection_ui)
+
 local path_package = vim.fn.stdpath("data") .. "/site/"
 local mini_path = path_package .. "pack/deps/start/mini.nvim"
 if not vim.loop.fs_stat(mini_path) then
