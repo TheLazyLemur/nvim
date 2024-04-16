@@ -3,6 +3,7 @@ local add = MiniDeps.add
 local plugins = {
   require("extra.plugins.trouble"),
   require("extra.plugins.neotest"),
+  require("extra.plugins.flash"),
 }
 
 for _, plugin in ipairs(plugins) do
