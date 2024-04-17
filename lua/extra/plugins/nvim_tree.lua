@@ -9,7 +9,7 @@ return {
         vim.opt.termguicolors = true
         require("nvim-tree").setup()
 
-        vim.keymap.set("n", "=tt", function()
+        vim.keymap.set("n", "<leader>nt", function()
             vim.cmd("NvimTreeFindFile")
             vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-w>p', true, false, true), 'n', true)
         end)
