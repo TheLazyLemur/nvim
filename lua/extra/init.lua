@@ -7,6 +7,7 @@ local plugins = {
   require("extra.plugins.bufferline"),
   require("extra.plugins.nvim_tree"),
   require("extra.plugins.flatten"),
+  require("extra.plugins.toggleterm"),
 }
 
 for _, plugin in ipairs(plugins) do
