@@ -2,6 +2,10 @@ local S = {
   enabled = false
 }
 
+vim.cmd [[
+  au BufNewFile,BufRead *.templ setfiletype templ
+]]
+
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
