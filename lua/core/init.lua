@@ -92,7 +92,6 @@ vim.keymap.set({ "x", "o" }, "=c", "gc", { remap = true })
 vim.keymap.set({ "n" }, "=c", "gcc", { remap = true })
 
 vim.keymap.set("n", "<F1>", function()
-
   if S.enabled then
     vim.cmd("tabdo windo set nonumber")
     S.enabled = false
@@ -104,20 +103,15 @@ vim.keymap.set("n", "<F1>", function()
     S.enabled = true
     return
   end
-
-end)
-
-vim.keymap.set("n", "=tt", function ()
-  vim.cmd("ToggleTerm size=20 dir=~/Desktop direction=horizontal name=desktop")
 end)
 
 vim.api.nvim_create_autocmd({ "TermOpen", "BufEnter", "BufWinEnter" }, {
-    pattern = { "*" },
-    callback = function()
-        if vim.opt.buftype:get() == "terminal" then
-            vim.cmd(":startinsert")
-        end
+  pattern = { "*" },
+  callback = function()
+    if vim.opt.buftype:get() == "terminal" then
+      vim.cmd(":startinsert")
     end
+  end
 })
 
 vim.api.nvim_create_autocmd("TextYankPost", {
@@ -365,8 +359,12 @@ require("nvim-treesitter.configs").setup({
 })
 
 add("folke/tokyonight.nvim")
-vim.cmd.colorscheme "tokyonight-night"
-vim.cmd.hi "Comment gui=none"
+
+if vim.fn.has("nvim-0.10") == 0 then
+  vim.cmd.colorscheme "tokyonight-night"
+  vim.cmd.hi "Comment gui=none"
+  return
+end
 
 add({
   source = "folke/todo-comments.nvim",
