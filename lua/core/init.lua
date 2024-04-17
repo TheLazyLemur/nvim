@@ -1,3 +1,7 @@
+local S = {
+  enabled = false
+}
+
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
@@ -76,6 +80,22 @@ vim.keymap.set('t', '<M-l>', '<Right>', { desc = 'Right' })
 
 vim.keymap.set({ "x", "o" }, "=c", "gc", { remap = true })
 vim.keymap.set({ "n" }, "=c", "gcc", { remap = true })
+
+vim.keymap.set("n", "<F1>", function()
+
+  if S.enabled then
+    vim.cmd("tabdo windo set nonumber")
+    S.enabled = false
+    return
+  end
+
+  if not S.enabled then
+    vim.cmd("tabdo windo set number")
+    S.enabled = true
+    return
+  end
+
+end)
 
 vim.api.nvim_create_autocmd("TextYankPost", {
   desc = "Highlight when yanking (copying) text",
