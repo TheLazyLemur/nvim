@@ -1,6 +1,6 @@
 local M = {
-    fileToBookmark = {},
-    centerCursor = function()
+    file_to_bookmark = {},
+    center_cursor = function()
         vim.cmd("normal zz")
     end,
 }
@@ -19,7 +19,7 @@ function M.save_bookmarks()
     local stdPath = vim.fn.stdpath("data")
     local file = io.open(stdPath .. "/marky.json", "w")
     if file then
-        file:write(vim.fn.json_encode(M.fileToBookmark))
+        file:write(vim.fn.json_encode(M.file_to_bookmark))
         file:close()
         return true
     else
@@ -36,7 +36,7 @@ function M.bookmark_file()
 
     local current_file = vim.api.nvim_buf_get_name(current_buf)
 
-    M.fileToBookmark[M.currentDir][current_file] = {
+    M.file_to_bookmark[M.currentDir][current_file] = {
         line = current_line,
         col = current_col,
     }
@@ -47,7 +47,7 @@ end
 function M.show_selection_ui(stuff)
     local items = {}
 
-    for k, v in pairs(M.fileToBookmark[M.currentDir]) do
+    for k, v in pairs(M.file_to_bookmark[M.currentDir]) do
         local truncatedK = H.split_string(k, M.currentDir)[2]
         table.insert(items, truncatedK .. ":" .. v.line .. "," .. v.col)
     end
@@ -100,7 +100,7 @@ function M.delete_bookmark()
 
     local selected_line = H.split_string(M.currentDir .. vim.fn.getline(cursor[1]), ":")[1]
 
-    M.fileToBookmark[M.currentDir][selected_line] = nil
+    M.file_to_bookmark[M.currentDir][selected_line] = nil
 
     local current_buf = vim.api.nvim_get_current_buf()
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
@@ -136,7 +136,7 @@ function M.select_item(in_split)
 
     vim.api.nvim_win_set_cursor(0, { tonumber(line), tonumber(col) })
 
-    M.centerCursor()
+    M.center_cursor()
 end
 
 function M.setup()
@@ -146,12 +146,12 @@ function M.setup()
 
     local file = io.open(stdPath .. "/marky.json", "r")
     if file then
-        M.fileToBookmark = vim.fn.json_decode(file:read("*a"))
+        M.file_to_bookmark = vim.fn.json_decode(file:read("*a"))
         file:close()
     end
 
-    if M.fileToBookmark[M.currentDir] == nil then
-        M.fileToBookmark[M.currentDir] = {}
+    if M.file_to_bookmark[M.currentDir] == nil then
+        M.file_to_bookmark[M.currentDir] = {}
     end
 
     return M

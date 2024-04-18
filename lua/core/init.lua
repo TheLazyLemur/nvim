@@ -14,7 +14,7 @@ vim.g.maplocalleader = " "
 
 vim.g.have_nerd_font = true
 
-vim.opt.number = false
+vim.opt.number = true
 vim.opt.relativenumber = false
 vim.opt.mouse = "a"
 vim.opt.showmode = false
@@ -57,11 +57,6 @@ vim.keymap.set("t", "<C-j>", "<C-\\><C-n><C-w>j", { desc = "Exit terminal mode" 
 vim.keymap.set("t", "<C-k>", "<C-\\><C-n><C-w>k", { desc = "Exit terminal mode" })
 vim.keymap.set("t", "<C-l>", "<C-\\><C-n><C-w>l", { desc = "Exit terminal mode" })
 
-vim.keymap.set("n", "<left>", "<cmd>echo 'Use h to move!!'<CR>")
-vim.keymap.set("n", "<right>", "<cmd>echo 'Use l to move!!'<CR>")
-vim.keymap.set("n", "<up>", "<cmd>echo 'Use k to move!!'<CR>")
-vim.keymap.set("n", "<down>", "<cmd>echo 'Use j to move!!'<CR>")
-
 vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
 vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
@@ -70,8 +65,6 @@ vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper win
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
-vim.keymap.set("i", "jk", "<ESC>")
-vim.keymap.set("i", "kj", "<ESC>")
 vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
 
@@ -87,9 +80,6 @@ vim.keymap.set('t', '<M-h>', '<Left>', { desc = 'Left' })
 vim.keymap.set('t', '<M-j>', '<Down>', { desc = 'Down' })
 vim.keymap.set('t', '<M-k>', '<Up>', { desc = 'Up' })
 vim.keymap.set('t', '<M-l>', '<Right>', { desc = 'Right' })
-
-vim.keymap.set({ "x", "o" }, "=c", "gc", { remap = true })
-vim.keymap.set({ "n" }, "=c", "gcc", { remap = true })
 
 vim.keymap.set("n", "<F1>", function()
   if S.enabled then
@@ -121,10 +111,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     vim.highlight.on_yank()
   end,
 })
-
-require("modules.bookmarks").setup()
-vim.keymap.set("n", "<leader>ba", require("modules.bookmarks").bookmark_file)
-vim.keymap.set("n", "<leader>bs", require("modules.bookmarks").show_selection_ui)
 
 local path_package = vim.fn.stdpath("data") .. "/site/"
 local mini_path = path_package .. "pack/deps/start/mini.nvim"
@@ -218,6 +204,15 @@ end, { desc = "[S]earch [/] in Open Files" })
 vim.keymap.set("n", "<leader>sn", function()
   builtin.find_files { cwd = vim.fn.stdpath "config" }
 end, { desc = "[S]earch [N]eovim files" })
+
+require("modules.bookmarks").setup()
+vim.keymap.set("n", "<leader>ba", require("modules.bookmarks").bookmark_file)
+vim.keymap.set("n", "<leader>bs", require("modules.bookmarks").show_selection_ui)
+
+require("modules.findit").setup()
+vim.keymap.set("n", "=sg", function() require("modules.findit").grep() end)
+vim.keymap.set("n", "=sf", function() require("modules.findit").find_files() end)
+vim.keymap.set("n", "=sff", function() require("modules.findit").find_files(true) end)
 
 add({
   source = "neovim/nvim-lspconfig",
