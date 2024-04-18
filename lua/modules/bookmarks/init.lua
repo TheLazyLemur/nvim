@@ -85,7 +85,7 @@ function M.show_selection_ui(stuff)
 
     vim.keymap.set("n", "<CR>", M.select_item, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "<C-v>", function() M.select_item(true) end, { buffer = current_buf, silent = true })
-    vim.keymap.set("n", "dd", M.delete_bookmark, { buffer = current_buf, silent = true })
+    vim.keymap.set("n", "dd", function() pcall(M.delete_bookmark) end, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "<Esc>", function()
         vim.api.nvim_win_close(0, true)
     end, { buffer = current_buf, silent = true })
