@@ -44,7 +44,7 @@ function M.bookmark_file()
     M.save_bookmarks()
 end
 
-function M.show_selection_ui()
+function M.show_selection_ui(stuff)
     local items = {}
 
     for k, v in pairs(M.fileToBookmark[M.currentDir]) do
@@ -53,6 +53,10 @@ function M.show_selection_ui()
     end
 
     local current_buf = vim.api.nvim_create_buf(false, true)
+
+    if stuff ~= nil then
+        items = stuff
+    end
 
     vim.api.nvim_buf_set_lines(current_buf, 0, -1, false, items)
     vim.api.nvim_set_option_value("modifiable", false, { buf = current_buf })
@@ -80,6 +84,7 @@ function M.show_selection_ui()
     })
 
     vim.keymap.set("n", "<CR>", M.select_item, { buffer = current_buf, silent = true })
+    vim.keymap.set("n", "<C-v>", function() M.select_item(true) end, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "dd", M.delete_bookmark, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "<Esc>", function()
         vim.api.nvim_win_close(0, true)
@@ -109,7 +114,11 @@ function M.delete_bookmark()
     M.save_bookmarks()
 end
 
-function M.select_item()
+function M.select_item(in_split)
+    if in_split == nil then
+        in_split = false
+    end
+
     local current_win = vim.api.nvim_get_current_win()
     local cursor = vim.api.nvim_win_get_cursor(current_win)
     local selected_line = M.currentDir .. vim.fn.getline(cursor[1])
@@ -120,6 +129,9 @@ function M.select_item()
     local col = H.split_string(lineAndCol, ",")[2]
 
     vim.api.nvim_win_close(0, true)
+    if in_split then
+        vim.api.nvim_command("vsplit")
+    end
     vim.api.nvim_command("edit " .. file)
 
     vim.api.nvim_win_set_cursor(0, { tonumber(line), tonumber(col) })
