@@ -5,7 +5,6 @@ local plugins = {
   require("extra.plugins.trouble"),
   require("extra.plugins.neotest"),
   require("extra.plugins.flash"),
-  require("extra.plugins.nterm"),
   require("extra.plugins.gonvim"),
   require("extra.plugins.debug"),
 }
