@@ -19,6 +19,12 @@ local modules = {
             end
         end
     },
+    {
+        m = "modules.fs",
+        config = function()
+            vim.keymap.set("n", "<leader>-", require("modules.fs").spawn_buffer)
+        end
+    },
 }
 
 for _, module in pairs(modules) do
