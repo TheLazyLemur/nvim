@@ -127,6 +127,32 @@ M.create_file = function(buf)
     H.set_buffer_lines(buf, items)
 end
 
+M.delete = function(buf)
+    local function getUserInput(prompt)
+        return vim.fn.input(prompt .. ": ")
+    end
+
+    local current_win = vim.api.nvim_get_current_win()
+    local cursor = vim.api.nvim_win_get_cursor(current_win)
+    local selected_line = vim.fn.getline(cursor[1])
+
+    local userInput = getUserInput("Would you like to delete y/n")
+    if userInput == "y" or userInput == "Y" then
+        vim.cmd("!rm -rf " .. M.current_dir .. selected_line)
+    end
+
+    if userInput == "n" or userInput == "N" then
+        return
+    end
+
+    local items = H.build_list_for_dir(M.current_dir)
+    if items == nil then
+        return
+    end
+
+    H.set_buffer_lines(buf, items)
+end
+
 M.create_dir = function(buf)
     local function getUserInput(prompt)
         return vim.fn.input(prompt .. ": ")
@@ -178,6 +204,7 @@ M.spawn_buffer = function()
     vim.keymap.set("n", "<CR>", M.select_item, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "c", function() M.create_file(current_buf) end, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "C", function() M.create_dir(current_buf) end, { buffer = current_buf, silent = true })
+    vim.keymap.set("n", "d", function() M.delete(current_buf) end, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "-", function() M.handle_directory_select("../") end, { buffer = current_buf, silent = true })
 end
 
