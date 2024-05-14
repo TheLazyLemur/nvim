@@ -132,7 +132,7 @@ add({
   depends = { "nvim-tree/nvim-web-devicons" },
 })
 require("oil").setup()
-vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+vim.keymap.set("n", "<leader>-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 
 add({
   source = "nvim-telescope/telescope.nvim",

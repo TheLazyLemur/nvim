@@ -22,7 +22,7 @@ local modules = {
     {
         m = "modules.fs",
         config = function()
-            vim.keymap.set("n", "<leader>-", require("modules.fs").spawn_buffer)
+            vim.keymap.set("n", "-", require("modules.fs").spawn_buffer)
         end
     },
 }
