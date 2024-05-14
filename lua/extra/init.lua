@@ -8,6 +8,7 @@ local plugins = {
   require("extra.plugins.gonvim"),
   require("extra.plugins.debug"),
   require("extra.plugins.cloak"),
+  require("extra.plugins.vimdadbod"),
 }
 
 for _, plugin in ipairs(plugins) do
