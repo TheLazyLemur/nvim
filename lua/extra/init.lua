@@ -7,6 +7,7 @@ local plugins = {
   require("extra.plugins.flash"),
   require("extra.plugins.gonvim"),
   require("extra.plugins.debug"),
+  require("extra.plugins.cloak"),
 }
 
 for _, plugin in ipairs(plugins) do
