@@ -1,5 +1,11 @@
 local H = {}
 
+function H.set_buffer_lines(buf, items)
+    vim.api.nvim_set_option_value("modifiable", true, { buf = buf })
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, items)
+    vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
+end
+
 function H.get_current_file_dir()
     return vim.fn.expand('%:p:h')
 end
@@ -109,7 +115,7 @@ M.create_file = function(buf)
         return vim.fn.input(prompt .. ": ")
     end
 
-    local userInput = getUserInput("Enter a filename")
+    local userInput = getUserInput("Enter a file name")
 
     vim.cmd("!touch " .. M.current_dir .. userInput)
 
@@ -118,9 +124,7 @@ M.create_file = function(buf)
         return
     end
 
-    vim.api.nvim_set_option_value("modifiable", true, { buf = buf })
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, items)
-    vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
+    H.set_buffer_lines(buf, items)
 end
 
 M.create_dir = function(buf)
@@ -128,18 +132,16 @@ M.create_dir = function(buf)
         return vim.fn.input(prompt .. ": ")
     end
 
-    local userInput = getUserInput("Enter a filename")
+    local userInput = getUserInput("Enter a dir name")
 
     vim.cmd("!mkdir -p " .. M.current_dir .. userInput)
 
-    items = H.build_list_for_dir(M.current_dir)
+    local items = H.build_list_for_dir(M.current_dir)
     if items == nil then
         return
     end
 
-    vim.api.nvim_set_option_value("modifiable", true, { buf = buf })
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, items)
-    vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
+    H.set_buffer_lines(buf, items)
 end
 
 M.spawn_buffer = function()
@@ -176,6 +178,7 @@ M.spawn_buffer = function()
     vim.keymap.set("n", "<CR>", M.select_item, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "c", function() M.create_file(current_buf) end, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "C", function() M.create_dir(current_buf) end, { buffer = current_buf, silent = true })
+    vim.keymap.set("n", "-", function() M.handle_directory_select("../") end, { buffer = current_buf, silent = true })
 end
 
 return M
