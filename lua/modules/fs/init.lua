@@ -104,8 +104,46 @@ function M.handle_file_select(file, in_split)
     vim.api.nvim_command("edit " .. M.current_dir .. "/" .. file)
 end
 
+M.create_file = function(buf)
+    local function getUserInput(prompt)
+        return vim.fn.input(prompt .. ": ")
+    end
+
+    local userInput = getUserInput("Enter a filename")
+
+    vim.cmd("!touch " .. M.current_dir .. userInput)
+
+    local items = H.build_list_for_dir(M.current_dir)
+    if items == nil then
+        return
+    end
+
+    vim.api.nvim_set_option_value("modifiable", true, { buf = buf })
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, items)
+    vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
+end
+
+M.create_dir = function(buf)
+    local function getUserInput(prompt)
+        return vim.fn.input(prompt .. ": ")
+    end
+
+    local userInput = getUserInput("Enter a filename")
+
+    vim.cmd("!mkdir -p " .. M.current_dir .. userInput)
+
+    items = H.build_list_for_dir(M.current_dir)
+    if items == nil then
+        return
+    end
+
+    vim.api.nvim_set_option_value("modifiable", true, { buf = buf })
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, items)
+    vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
+end
+
 M.spawn_buffer = function()
-    M.current_dir = H.get_current_file_dir()
+    M.current_dir = H.get_current_file_dir() .. "/"
 
     local items = H.build_list_for_dir(M.current_dir)
     if items == nil then
@@ -136,6 +174,8 @@ M.spawn_buffer = function()
     })
 
     vim.keymap.set("n", "<CR>", M.select_item, { buffer = current_buf, silent = true })
+    vim.keymap.set("n", "c", function() M.create_file(current_buf) end, { buffer = current_buf, silent = true })
+    vim.keymap.set("n", "C", function() M.create_dir(current_buf) end, { buffer = current_buf, silent = true })
 end
 
 return M
