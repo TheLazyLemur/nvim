@@ -142,8 +142,7 @@ add({
     "nvim-telescope/telescope-ui-select.nvim",
     "nvim-tree/nvim-web-devicons"
   },
-  checkout = "0.1.x",
-  monitor = "0.1.x",
+  version = false,
   hooks = {
     post_checkout = function() vim.cmd("TSUpdate") end
   },
