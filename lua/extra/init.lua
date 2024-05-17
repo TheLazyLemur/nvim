@@ -1,7 +1,7 @@
 local add, now, later = MiniDeps.add, MiniDeps.now, MiniDeps.later
 
 local plugins = {
-  require("extra.plugins.oxocarbon"),
+  require("extra.plugins.colorschemes"),
   require("extra.plugins.trouble"),
   require("extra.plugins.neotest"),
   require("extra.plugins.flash"),
@@ -23,3 +23,5 @@ for _, plugin in ipairs(plugins) do
     now(function() pcall(plugin.config) end)
   end
 end
+
+require("extra.keymaps")

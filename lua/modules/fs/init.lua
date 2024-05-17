@@ -36,30 +36,58 @@ function H.get_current_working_dir()
     return uv.cwd()
 end
 
-function H.build_list_for_dir(dir)
-    local ret = {}
-
-    table.insert(ret, "./")
-    table.insert(ret, "../")
-
+function H.build_list_for_dir(dir, idx_of, with_icons)
     local items = H.list_files(dir)
 
     if items == nil then
         return
     end
 
+    local ret = {}
+
+    table.insert(ret, "./")
+    table.insert(ret, "../")
+
     for i, entry in ipairs(items) do
         if H.is_directory(dir .. "/" .. entry) then
-            items[i] = items[i] .. "/"
+            if with_icons then
+                table.insert(ret, "󰉋" .. " " .. items[i] .. "/")
+            else
+                table.insert(ret, items[i] .. "/")
+            end
         end
-        table.insert(ret, items[i])
     end
 
-    return ret
+    for i, entry in ipairs(items) do
+        if not H.is_directory(dir .. "/" .. entry) then
+            if with_icons then
+                local icon = require 'nvim-web-devicons'.get_icon(entry, nil)
+                table.insert(ret, icon .. " " .. items[i])
+            else
+                table.insert(ret, items[i])
+            end
+        end
+    end
+
+    local idx = 1
+
+    for i, entry in ipairs(ret) do
+        if entry == idx_of then
+            idx = i
+        end
+    end
+
+    return ret, idx
 end
 
 function H.chop_last_char(str)
     return string.sub(str, 1, -2)
+end
+
+function H.get_filename()
+    local full_path = vim.fn.expand('%:p')
+    local file_name = vim.fn.fnamemodify(full_path, ':t')
+    return file_name
 end
 
 local M = {
@@ -173,7 +201,7 @@ end
 M.spawn_buffer = function()
     M.current_dir = H.get_current_file_dir() .. "/"
 
-    local items = H.build_list_for_dir(M.current_dir)
+    local items, cursor_pos = H.build_list_for_dir(M.current_dir, H.get_filename())
     if items == nil then
         return
     end
@@ -200,6 +228,8 @@ M.spawn_buffer = function()
         title = "Files",
         title_pos = "center",
     })
+
+    vim.cmd("" .. cursor_pos)
 
     vim.keymap.set("n", "<CR>", M.select_item, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "c", function() M.create_file(current_buf) end, { buffer = current_buf, silent = true })

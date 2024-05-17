@@ -8,8 +8,5 @@ return {
         },
       },
     })
-
-    vim.keymap.set("n", "<leader>jj", function() require("flash").jump() end)
-    vim.keymap.set("n", "<leader>jt", function() require("flash").treesitter() end)
   end
 }
