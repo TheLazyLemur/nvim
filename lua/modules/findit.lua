@@ -77,9 +77,6 @@ local function test_here()
 
     vim.keymap.set("i", "<C-n>", function()
         cursorPos = cursorPos + 1
-        local filter_value = vim.api.nvim_buf_get_lines(in_buf, 0, -1, false)
-        local files = ops.get_all_files()
-        list = ops.get_exact_matches(filter_value[1], files)
         local displ = ops.get_view_list(list, cursorPos)
 
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
@@ -87,9 +84,6 @@ local function test_here()
 
     vim.keymap.set("i", "<C-p>", function()
         cursorPos = cursorPos - 1
-        local filter_value = vim.api.nvim_buf_get_lines(in_buf, 0, -1, false)
-        local files = ops.get_all_files()
-        list = ops.get_exact_matches(filter_value[1], files)
         local displ = ops.get_view_list(list, cursorPos)
 
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
