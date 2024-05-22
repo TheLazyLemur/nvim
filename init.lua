@@ -17,5 +17,7 @@ require("core")
 require("extra")
 require("modules")
 
-require("modules.findit")
+local findit = require("modules.findit")
+vim.keymap.set("n", "<leader>ss", findit.find_files, { desc = "Test here" })
+
 -- vim: ts=2 sts=2 sw=2 et

@@ -32,8 +32,20 @@ function ops.get_view_list(list, cursorPos)
     return view_list
 end
 
-local function test_here()
-    local width = math.floor(vim.o.columns / 2)
+function ops.execute_shell_command(command)
+    local res = vim.api.nvim_exec(command, true)
+    local lines = {}
+    for line in res:gmatch("[^\n]*") do
+        table.insert(lines, line)
+    end
+
+    return lines
+end
+
+local M = {}
+
+function M.find_files()
+    local width = math.floor(vim.o.columns / 3)
     local height = 0
 
     if height == 0 then
@@ -49,7 +61,7 @@ local function test_here()
         height = height,
         style = "minimal",
         border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
-        title = "Input",
+        title = " Input ",
         title_pos = "center",
     })
 
@@ -57,23 +69,38 @@ local function test_here()
     local out_win = vim.api.nvim_open_win(out_buf, false, {
         relative = "editor",
         row = 4,
-        col = math.floor(vim.o.columns / 2 - width / 2),
+        col = 0,
         width = width,
         height = 30,
         style = "minimal",
         border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
-        title = "Results",
+        title = " Results ",
         title_pos = "center",
     })
+
+    local prev_buf = vim.api.nvim_create_buf(false, true)
+    local _ = vim.api.nvim_open_win(prev_buf, false, {
+        relative = "editor",
+        row = 4,
+        col = 0 + width + 10,
+        width = width,
+        height = 30,
+        style = "minimal",
+        border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
+        title = " Preview ",
+        title_pos = "center",
+    })
+    vim.api.nvim_buf_set_option(prev_buf, 'filetype', "lua")
 
     local initial_files = ops.get_all_files()
     local intial_displ = ops.get_view_list(initial_files, 1)
     vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, intial_displ)
 
+
     vim.cmd("startinsert")
 
     local cursorPos = 1
-    local list = {}
+    local list = initial_files
 
     vim.keymap.set("i", "<C-n>", function()
         cursorPos = cursorPos + 1
@@ -87,7 +114,10 @@ local function test_here()
 
         local displ = ops.get_view_list(list, cursorPos)
 
+        local ls_output = ops.execute_shell_command('!bat ' .. list[cursorPos])
+
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
+        vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, ls_output)
         vim.api.nvim_win_set_cursor(out_win, { cursorPos, 0 })
     end, { buffer = in_buf })
 
@@ -103,46 +133,12 @@ local function test_here()
 
         local displ = ops.get_view_list(list, cursorPos)
 
+        local ls_output = ops.execute_shell_command('!cat ' .. list[cursorPos])
+
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
+        vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, ls_output)
         vim.api.nvim_win_set_cursor(out_win, { cursorPos, 0 })
     end, { buffer = in_buf })
-
-    vim.keymap.set("i", "<C-q>", function()
-        pcall(
-            function()
-                vim.api.nvim_buf_delete(in_buf, { force = true })
-                vim.api.nvim_buf_delete(out_buf, { force = true })
-            end
-        )
-    end, { buffer = in_buf })
-
-    vim.keymap.set("n", "<C-q>", function()
-        pcall(
-            function()
-                vim.api.nvim_buf_delete(in_buf, { force = true })
-                vim.api.nvim_buf_delete(out_buf, { force = true })
-            end
-        )
-    end, { buffer = in_buf })
-
-    vim.keymap.set("i", "<C-q>", function()
-        pcall(
-            function()
-                vim.api.nvim_buf_delete(in_buf, { force = true })
-                vim.api.nvim_buf_delete(out_buf, { force = true })
-            end
-        )
-    end, { buffer = out_buf })
-
-    vim.keymap.set("n", "<C-q>", function()
-        pcall(
-            function()
-                vim.api.nvim_buf_delete(in_buf, { force = true })
-                vim.api.nvim_buf_delete(out_buf, { force = true })
-            end
-        )
-    end, { buffer = out_buf })
-
 
     vim.keymap.set("i", "<CR>", function()
         pcall(
@@ -155,11 +151,20 @@ local function test_here()
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
         buffer = in_buf,
         callback = function()
+            cursorPos = 1
             local filter_value = vim.api.nvim_buf_get_lines(in_buf, 0, -1, false)
             local files = ops.get_all_files()
             local filtered_files = ops.get_exact_matches(filter_value[1], files)
             list = filtered_files
             local displ = ops.get_view_list(filtered_files, cursorPos)
+
+            if list[cursorPos] then
+                local ls_output = ops.execute_shell_command('!bat ' .. list[cursorPos])
+                vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, ls_output)
+            else
+                vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, {})
+            end
+
             vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
         end
     })
@@ -168,7 +173,10 @@ local function test_here()
         buffer = in_buf,
         callback = function()
             pcall(
-                function() vim.api.nvim_buf_delete(out_buf, { force = true }) end
+                function()
+                    vim.api.nvim_buf_delete(out_buf, { force = true })
+                    vim.api.nvim_buf_delete(prev_buf, { force = true })
+                end
             )
         end
     })
@@ -177,10 +185,13 @@ local function test_here()
         buffer = out_buf,
         callback = function()
             pcall(
-                function() vim.api.nvim_buf_delete(in_buf, { force = true }) end
+                function()
+                    vim.api.nvim_buf_delete(in_buf, { force = true })
+                    vim.api.nvim_buf_delete(prev_buf, { force = true })
+                end
             )
         end
     })
 end
 
-vim.keymap.set("n", "<leader>ss", test_here, { desc = "Test here" })
+return M
