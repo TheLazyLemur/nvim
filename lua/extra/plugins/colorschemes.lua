@@ -8,6 +8,6 @@ return {
   },
   config = function()
     vim.opt.background = "dark"
-    vim.cmd("colorscheme rose-pine")
+    vim.cmd("colorscheme noirbuddy")
   end
 }

@@ -36,10 +36,10 @@ function H.get_current_working_dir()
     return uv.cwd()
 end
 
-function H.build_list_for_dir(dir, idx_of, with_icons)
+function H.build_list_for_dir(dir, idx_of)
     local items = H.list_files(dir)
-
     if items == nil then
+        vim.notify("Something went wrong while listing files", vim.log.levels.WARN)
         return
     end
 
@@ -50,22 +50,13 @@ function H.build_list_for_dir(dir, idx_of, with_icons)
 
     for i, entry in ipairs(items) do
         if H.is_directory(dir .. "/" .. entry) then
-            if with_icons then
-                table.insert(ret, "󰉋" .. " " .. items[i] .. "/")
-            else
-                table.insert(ret, items[i] .. "/")
-            end
+            table.insert(ret, items[i] .. "/")
         end
     end
 
     for i, entry in ipairs(items) do
         if not H.is_directory(dir .. "/" .. entry) then
-            if with_icons then
-                local icon = require 'nvim-web-devicons'.get_icon(entry, nil)
-                table.insert(ret, icon .. " " .. items[i])
-            else
-                table.insert(ret, items[i])
-            end
+            table.insert(ret, items[i])
         end
     end
 
@@ -111,15 +102,17 @@ function M.select_item(in_split)
 end
 
 function M.handle_directory_select(dir)
+    local last_dir = vim.fn.fnamemodify(M.current_dir, ":h")
     if dir == "../" then
         M.current_dir = vim.fn.fnamemodify(H.chop_last_char(M.current_dir), ":h")
+        print()
     else
         M.current_dir = M.current_dir .. "/" .. dir
     end
 
     local current_buf = vim.api.nvim_get_current_buf()
     vim.api.nvim_set_option_value("modifiable", true, { buf = current_buf })
-    local items = H.build_list_for_dir(M.current_dir)
+    local items, idx = H.build_list_for_dir(M.current_dir)
     if items == nil then
         return
     end
@@ -129,8 +122,6 @@ function M.handle_directory_select(dir)
 end
 
 function M.handle_file_select(file, in_split)
-    vim.api.nvim_win_close(0, true)
-
     if in_split then
         vim.api.nvim_command("vsplit")
     end
@@ -211,25 +202,10 @@ M.spawn_buffer = function()
     vim.api.nvim_buf_set_lines(current_buf, 0, -1, false, items)
     vim.api.nvim_set_option_value("modifiable", false, { buf = current_buf })
 
-    local width = math.floor(vim.o.columns * 0.3)
-    local height = math.floor(vim.o.lines * 0.3)
+    local win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(win, current_buf)
 
-    local row = math.floor((vim.o.lines - height) / 2)
-    local col = math.floor((vim.o.columns - width) / 2)
-
-    local _ = vim.api.nvim_open_win(current_buf, true, {
-        relative = "editor",
-        row = row,
-        col = col,
-        width = width,
-        height = height,
-        style = "minimal",
-        border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
-        title = "Files",
-        title_pos = "center",
-    })
-
-    vim.cmd("" .. cursor_pos)
+    vim.cmd(string.format(":%d", cursor_pos))
 
     vim.keymap.set("n", "<CR>", M.select_item, { buffer = current_buf, silent = true })
     vim.keymap.set("n", "c", function() M.create_file(current_buf) end, { buffer = current_buf, silent = true })
