@@ -54,7 +54,7 @@ local function test_here()
     })
 
     local out_buf = vim.api.nvim_create_buf(false, true)
-    local _ = vim.api.nvim_open_win(out_buf, false, {
+    local out_win = vim.api.nvim_open_win(out_buf, false, {
         relative = "editor",
         row = 4,
         col = math.floor(vim.o.columns / 2 - width / 2),
@@ -77,16 +77,34 @@ local function test_here()
 
     vim.keymap.set("i", "<C-n>", function()
         cursorPos = cursorPos + 1
+        if cursorPos > #list then
+            cursorPos = #list
+        end
+
+        if cursorPos < 1 then
+            cursorPos = 1
+        end
+
         local displ = ops.get_view_list(list, cursorPos)
 
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
+        vim.api.nvim_win_set_cursor(out_win, { cursorPos, 0 })
     end, { buffer = in_buf })
 
     vim.keymap.set("i", "<C-p>", function()
         cursorPos = cursorPos - 1
+        if cursorPos > #list then
+            cursorPos = #list
+        end
+
+        if cursorPos < 1 then
+            cursorPos = 1
+        end
+
         local displ = ops.get_view_list(list, cursorPos)
 
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
+        vim.api.nvim_win_set_cursor(out_win, { cursorPos, 0 })
     end, { buffer = in_buf })
 
     vim.keymap.set("i", "<C-q>", function()
