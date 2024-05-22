@@ -33,7 +33,7 @@ function ops.get_view_list(list, cursorPos)
 end
 
 local function test_here()
-    local width = vim.o.columns / 2
+    local width = math.floor(vim.o.columns / 2)
     local height = 0
 
     if height == 0 then
