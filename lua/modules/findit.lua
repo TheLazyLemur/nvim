@@ -1,6 +1,11 @@
-local ops = {}
+local ops = {
+}
 
-function ops.get_all_files()
+function ops.get_all_files(input)
+    if input then
+        return ops.execute_shell_command({ "sh", "-c", "fd . --type f | rg " .. input })
+    end
+
     return ops.execute_shell_command({ "fd", ".", "--type", "f" })
 end
 
@@ -40,7 +45,9 @@ function ops.execute_shell_command(command)
     return lines
 end
 
-local M = {}
+local M = {
+    prompt = "FindIt> ",
+}
 
 function M.find_files()
     local width = math.floor(vim.o.columns / 3)
@@ -88,12 +95,11 @@ function M.find_files()
         title = " Preview ",
         title_pos = "center",
     })
-    vim.api.nvim_buf_set_option(prev_buf, 'filetype', "lua")
+    vim.api.nvim_set_option_value("filetype", "lua", { buf = prev_buf })
 
     local initial_files = ops.get_all_files()
     local intial_displ = ops.get_view_list(initial_files, 1)
     vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, intial_displ)
-
 
     vim.cmd("startinsert")
 
@@ -148,16 +154,16 @@ function M.find_files()
 
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
         buffer = in_buf,
+        group = vim.api.nvim_create_augroup("FindIt-Input-TextChanged", { clear = true }),
         callback = function()
             cursorPos = 1
             local filter_value = vim.api.nvim_buf_get_lines(in_buf, 0, -1, false)
-            local files = ops.get_all_files()
-            local filtered_files = ops.get_exact_matches(filter_value[1], files)
+            local filtered_files = ops.get_all_files(filter_value[1])
             list = filtered_files
             local displ = ops.get_view_list(filtered_files, cursorPos)
 
             if list[cursorPos] then
-                local ls_output = ops.execute_shell_command('!bat ' .. list[cursorPos])
+                local ls_output = ops.execute_shell_command('bat ' .. list[cursorPos])
                 vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, ls_output)
             else
                 vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, {})
@@ -169,27 +175,20 @@ function M.find_files()
 
     vim.api.nvim_create_autocmd("BufLeave", {
         buffer = in_buf,
+        group = vim.api.nvim_create_augroup("FindIt-Input-BufLeave", { clear = true }),
         callback = function()
             pcall(
                 function()
+                    vim.api.nvim_buf_delete(in_buf, { force = true })
                     vim.api.nvim_buf_delete(out_buf, { force = true })
                     vim.api.nvim_buf_delete(prev_buf, { force = true })
                 end
             )
         end
     })
+end
 
-    vim.api.nvim_create_autocmd("BufLeave", {
-        buffer = out_buf,
-        callback = function()
-            pcall(
-                function()
-                    vim.api.nvim_buf_delete(in_buf, { force = true })
-                    vim.api.nvim_buf_delete(prev_buf, { force = true })
-                end
-            )
-        end
-    })
+function M.setup(opts)
 end
 
 return M

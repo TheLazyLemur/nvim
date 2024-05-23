@@ -25,6 +25,13 @@ local modules = {
             vim.keymap.set("n", "-", require("modules.fs").spawn_buffer)
         end
     },
+    {
+        m = "modules.findit",
+        config = function()
+            local findit = require("modules.findit")
+            vim.keymap.set("n", "<leader>ss", findit.find_files, { desc = "Test here" })
+        end
+    },
 }
 
 for _, module in pairs(modules) do
