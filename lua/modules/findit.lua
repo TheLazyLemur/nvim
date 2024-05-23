@@ -1,9 +1,7 @@
 local ops = {}
 
 function ops.get_all_files()
-    local scan = require 'plenary.scandir'
-    local all_files = scan.scan_dir('.', { hidden = false, depth = 20 })
-    return all_files
+    return ops.execute_shell_command({ "fd", ".", "--type", "f" })
 end
 
 function ops.get_exact_matches(value, list)
@@ -33,9 +31,9 @@ function ops.get_view_list(list, cursorPos)
 end
 
 function ops.execute_shell_command(command)
-    local res = vim.api.nvim_exec(command, true)
+    local out = vim.fn.system(command)
     local lines = {}
-    for line in res:gmatch("[^\n]*") do
+    for line in out:gmatch("([^\n]*)\n?") do
         table.insert(lines, line)
     end
 
@@ -56,8 +54,8 @@ function M.find_files()
     local _ = vim.api.nvim_open_win(in_buf, true, {
         relative = "editor",
         row = 1,
-        col = math.floor(vim.o.columns / 2 - width / 2),
-        width = width,
+        col = 0,
+        width = width * 2 + 3,
         height = height,
         style = "minimal",
         border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
@@ -82,7 +80,7 @@ function M.find_files()
     local _ = vim.api.nvim_open_win(prev_buf, false, {
         relative = "editor",
         row = 4,
-        col = 0 + width + 10,
+        col = 0 + width + 3,
         width = width,
         height = 30,
         style = "minimal",
@@ -114,7 +112,7 @@ function M.find_files()
 
         local displ = ops.get_view_list(list, cursorPos)
 
-        local ls_output = ops.execute_shell_command('!bat ' .. list[cursorPos])
+        local ls_output = ops.execute_shell_command({ 'bat', list[cursorPos] })
 
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
         vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, ls_output)
@@ -133,7 +131,7 @@ function M.find_files()
 
         local displ = ops.get_view_list(list, cursorPos)
 
-        local ls_output = ops.execute_shell_command('!cat ' .. list[cursorPos])
+        local ls_output = ops.execute_shell_command({ 'bat', list[cursorPos] })
 
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
         vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, ls_output)
