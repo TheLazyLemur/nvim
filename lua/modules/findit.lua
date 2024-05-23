@@ -50,6 +50,18 @@ function ops.execute_shell_command(command)
     return lines
 end
 
+function ops.get_quickfix_list(list)
+    local quickfix_list = {}
+    for _, v in ipairs(list) do
+        table.insert(quickfix_list, {
+            filename = v,
+            text = v
+        })
+    end
+
+    return quickfix_list
+end
+
 local M = {
     list = {}
 }
@@ -169,6 +181,18 @@ function M.find_files()
         )
         vim.cmd('stopinsert')
         vim.cmd("e " .. M.list[cursorPos])
+    end, { buffer = in_buf })
+
+    vim.keymap.set("i", "<C-q>", function()
+        local quickfix_list = ops.get_quickfix_list(M.list)
+        vim.fn.setqflist(quickfix_list)
+        pcall(
+            function() vim.api.nvim_buf_delete(in_buf, { force = true }) end
+        )
+        vim.cmd([[
+           stopinsert
+           copen
+        ]])
     end, { buffer = in_buf })
 
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
