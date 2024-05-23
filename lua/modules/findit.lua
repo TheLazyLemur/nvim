@@ -73,7 +73,7 @@ local M = {
     out_win = nil,
 }
 
-function M.find_files()
+function M.spawn_buffers_and_windows(with_autocmds)
     local container_width = math.floor(vim.o.columns / 1.3)
     local container_height = math.floor(vim.o.lines / 1.3)
 
@@ -124,7 +124,14 @@ function M.find_files()
         title = " Preview ",
         title_pos = "center",
     })
-    vim.api.nvim_set_option_value("filetype", "lua", { buf = M.prev_buf })
+
+    if with_autocmds then
+        M.set_autocmds()
+    end
+end
+
+function M.find_files()
+    M.spawn_buffers_and_windows()
 
     local initial_files = ops.get_all_files()
     local intial_displ = ops.get_view_list(initial_files, 1)
@@ -141,85 +148,12 @@ function M.find_files()
         vim.cmd('stopinsert')
     end, { buffer = M.in_buf })
 
-    vim.keymap.set("i", "<C-n>", function()
-        M.cursorPos = M.cursorPos + 1
-        if M.cursorPos > #M.list then
-            M.cursorPos = #M.list
-        end
+    vim.keymap.set("i", "<C-n>", M.next, { buffer = M.in_buf })
+    vim.keymap.set("i", "<C-p>", M.prev, { buffer = M.in_buf })
+    vim.keymap.set("i", "<CR>", M.select, { buffer = M.in_buf })
+    vim.keymap.set("i", "<C-q>", M.send_to_quickfix, { buffer = M.in_buf })
 
-        if M.cursorPos < 1 then
-            M.cursorPos = 1
-        end
-
-        local displ = ops.get_view_list(M.list, M.cursorPos)
-
-        local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
-        vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
-        local ls_output = ops.execute_shell_command({ 'bat', M.list[M.cursorPos] })
-
-        vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
-        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
-        vim.api.nvim_win_set_cursor(M.out_win, { M.cursorPos, 0 })
-    end, { buffer = M.in_buf })
-
-    vim.keymap.set("i", "<C-p>", function()
-        M.cursorPos = M.cursorPos - 1
-        if M.cursorPos > #M.list then
-            M.cursorPos = #M.list
-        end
-
-        if M.cursorPos < 1 then
-            M.cursorPos = 1
-        end
-
-        local displ = ops.get_view_list(M.list, M.cursorPos)
-
-        local ls_output = ops.execute_shell_command({ 'bat', M.list[M.cursorPos] })
-
-        vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
-        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
-        vim.api.nvim_win_set_cursor(M.out_win, { M.cursorPos, 0 })
-    end, { buffer = M.in_buf })
-
-    vim.keymap.set("i", "<CR>", function()
-        pcall(
-            function() vim.api.nvim_buf_delete(M.in_buf, { force = true }) end
-        )
-        vim.cmd('stopinsert')
-        vim.cmd("e " .. M.list[M.cursorPos])
-    end, { buffer = M.in_buf })
-
-    vim.keymap.set("i", "<C-q>", function()
-        local quickfix_list = ops.get_quickfix_list(M.list)
-        vim.fn.setqflist(quickfix_list)
-        pcall(
-            function() vim.api.nvim_buf_delete(M.in_buf, { force = true }) end
-        )
-        vim.cmd([[
-           stopinsert
-           copen
-        ]])
-    end, { buffer = M.in_buf })
-
-    vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
-        buffer = M.in_buf,
-        group = vim.api.nvim_create_augroup("FindIt-Input-TextChanged", { clear = true }),
-        callback = M.on_input_changed,
-    })
-
-    vim.api.nvim_create_autocmd("BufLeave", {
-        buffer = M.in_buf,
-        group = vim.api.nvim_create_augroup("FindIt-Input-BufLeave", { clear = true }),
-        callback = function()
-            pcall(
-                function()
-                    vim.api.nvim_buf_delete(M.in_buf, { force = true })
-                    vim.api.nvim_buf_delete(M.out_buf, { force = true })
-                    vim.api.nvim_buf_delete(M.prev_buf, { force = true })
-                end
-            )
-        end
-    })
+    M.set_autocmds()
 end
 
 function M.on_input_changed()
@@ -237,6 +171,89 @@ function M.on_input_changed()
     end
 
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
+end
+
+function M.close()
+    pcall(
+        function()
+            vim.api.nvim_buf_delete(M.in_buf, { force = true })
+            vim.api.nvim_buf_delete(M.out_buf, { force = true })
+            vim.api.nvim_buf_delete(M.prev_buf, { force = true })
+            vim.cmd("stopinsert")
+            vim.cmd("augroup! FindIt-Input-TextChanged")
+            vim.cmd("augroup! FindIt-Input-BufLeave")
+        end
+    )
+end
+
+function M.next()
+    M.cursorPos = M.cursorPos + 1
+    if M.cursorPos > #M.list then
+        M.cursorPos = #M.list
+    end
+
+    if M.cursorPos < 1 then
+        M.cursorPos = 1
+    end
+
+    local displ = ops.get_view_list(M.list, M.cursorPos)
+
+    local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
+    vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
+    local ls_output = ops.execute_shell_command({ 'bat', M.list[M.cursorPos] })
+
+    vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
+    vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
+    vim.api.nvim_win_set_cursor(M.out_win, { M.cursorPos, 0 })
+end
+
+function M.prev()
+    M.cursorPos = M.cursorPos - 1
+    if M.cursorPos > #M.list then
+        M.cursorPos = #M.list
+    end
+
+    if M.cursorPos < 1 then
+        M.cursorPos = 1
+    end
+
+    local displ = ops.get_view_list(M.list, M.cursorPos)
+
+    local ls_output = ops.execute_shell_command({ 'bat', M.list[M.cursorPos] })
+
+    vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
+    vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
+    vim.api.nvim_win_set_cursor(M.out_win, { M.cursorPos, 0 })
+end
+
+function M.select()
+    M.close()
+    vim.cmd('stopinsert')
+    vim.cmd("e " .. M.list[M.cursorPos])
+end
+
+function M.send_to_quickfix()
+    local quickfix_list = ops.get_quickfix_list(M.list)
+    vim.fn.setqflist(quickfix_list)
+    M.close()
+    vim.cmd([[
+           stopinsert
+           copen
+        ]])
+end
+
+function M.set_autocmds()
+    vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+        buffer = M.in_buf,
+        group = vim.api.nvim_create_augroup("FindIt-Input-TextChanged", { clear = true }),
+        callback = M.on_input_changed,
+    })
+
+    vim.api.nvim_create_autocmd("BufLeave", {
+        buffer = M.in_buf,
+        group = vim.api.nvim_create_augroup("FindIt-Input-BufLeave", { clear = true }),
+        callback = M.close,
+    })
 end
 
 function M.setup(opts)
