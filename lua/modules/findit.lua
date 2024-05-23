@@ -38,8 +38,12 @@ function ops.execute_shell_command(command)
     local out = vim.fn.system(command)
     local lines = {}
     for line in out:gmatch("([^\n]*)\n?") do
-        if line ~= "" then
-            table.insert(lines, line)
+        table.insert(lines, line)
+    end
+
+    for i = #lines, 1, -1 do
+        if i == #lines and lines[i] == "" then
+            table.remove(lines, i)
         end
     end
 
@@ -47,7 +51,7 @@ function ops.execute_shell_command(command)
 end
 
 local M = {
-    prompt = "FindIt> ",
+    list = {}
 }
 
 function M.find_files()
@@ -110,7 +114,7 @@ function M.find_files()
     vim.cmd("startinsert")
 
     local cursorPos = 1
-    local list = initial_files
+    M.list = initial_files
 
     vim.keymap.set("n", "<ESC>", function()
         pcall(
@@ -121,19 +125,19 @@ function M.find_files()
 
     vim.keymap.set("i", "<C-n>", function()
         cursorPos = cursorPos + 1
-        if cursorPos > #list then
-            cursorPos = #list
+        if cursorPos > #M.list then
+            cursorPos = #M.list
         end
 
         if cursorPos < 1 then
             cursorPos = 1
         end
 
-        local displ = ops.get_view_list(list, cursorPos)
+        local displ = ops.get_view_list(M.list, cursorPos)
 
-        local ext = vim.fn.fnamemodify(list[cursorPos], ":e")
+        local ext = vim.fn.fnamemodify(M.list[cursorPos], ":e")
         vim.api.nvim_set_option_value("filetype", ext, { buf = prev_buf })
-        local ls_output = ops.execute_shell_command({ 'bat', list[cursorPos] })
+        local ls_output = ops.execute_shell_command({ 'bat', M.list[cursorPos] })
 
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
         vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, ls_output)
@@ -142,17 +146,17 @@ function M.find_files()
 
     vim.keymap.set("i", "<C-p>", function()
         cursorPos = cursorPos - 1
-        if cursorPos > #list then
-            cursorPos = #list
+        if cursorPos > #M.list then
+            cursorPos = #M.list
         end
 
         if cursorPos < 1 then
             cursorPos = 1
         end
 
-        local displ = ops.get_view_list(list, cursorPos)
+        local displ = ops.get_view_list(M.list, cursorPos)
 
-        local ls_output = ops.execute_shell_command({ 'bat', list[cursorPos] })
+        local ls_output = ops.execute_shell_command({ 'bat', M.list[cursorPos] })
 
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
         vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, ls_output)
@@ -164,7 +168,7 @@ function M.find_files()
             function() vim.api.nvim_buf_delete(in_buf, { force = true }) end
         )
         vim.cmd('stopinsert')
-        vim.cmd("e " .. list[cursorPos])
+        vim.cmd("e " .. M.list[cursorPos])
     end, { buffer = in_buf })
 
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
@@ -173,12 +177,12 @@ function M.find_files()
         callback = function()
             cursorPos = 1
             local filter_value = vim.api.nvim_buf_get_lines(in_buf, 0, -1, false)
-            local filtered_files = ops.get_all_files(filter_value[1])
-            list = filtered_files
-            local displ = ops.get_view_list(filtered_files, cursorPos)
+            M.list = ops.get_all_files(filter_value[1])
 
-            if list[cursorPos] then
-                local ls_output = ops.execute_shell_command('bat ' .. list[cursorPos])
+            local displ = ops.get_view_list(M.list, cursorPos)
+
+            if M.list[cursorPos] then
+                local ls_output = ops.execute_shell_command('bat ' .. M.list[cursorPos])
                 vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, ls_output)
             else
                 vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, {})
