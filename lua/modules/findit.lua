@@ -1,5 +1,4 @@
-local ops = {
-}
+local ops = {}
 
 function ops.get_all_files(input)
     if input or input == "" then
@@ -39,7 +38,9 @@ function ops.execute_shell_command(command)
     local out = vim.fn.system(command)
     local lines = {}
     for line in out:gmatch("([^\n]*)\n?") do
-        table.insert(lines, line)
+        if line ~= "" then
+            table.insert(lines, line)
+        end
     end
 
     return lines
@@ -50,48 +51,53 @@ local M = {
 }
 
 function M.find_files()
-    local width = math.floor(vim.o.columns / 3)
-    local height = 0
+    local container_width = math.floor(vim.o.columns / 1.3)
+    local container_height = math.floor(vim.o.lines / 1.3)
 
-    if height == 0 then
-        height = 1
-    end
+    local container_x = math.floor((vim.o.columns - container_width) / 2)
+    local container_y = math.floor((vim.o.lines - container_height) / 2)
 
+    local input_width = math.floor(container_width * 0.5)
+    local input_height = 1
     local in_buf = vim.api.nvim_create_buf(false, true)
-    local _ = vim.api.nvim_open_win(in_buf, true, {
+    local in_win = vim.api.nvim_open_win(in_buf, true, {
         relative = "editor",
-        row = 1,
-        col = 0,
-        width = width * 2 + 3,
-        height = height,
+        row = container_y + container_height - input_height,
+        col = container_x,
+        width = input_width,
+        height = input_height,
         style = "minimal",
-        border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
+        border = "rounded",
         title = " Input ",
         title_pos = "center",
     })
 
+    local result_width = math.floor(container_width * 0.5)
+    local result_height = math.floor((container_height) - container_height * 0.05) - input_height
     local out_buf = vim.api.nvim_create_buf(false, true)
     local out_win = vim.api.nvim_open_win(out_buf, false, {
         relative = "editor",
-        row = 4,
-        col = 0,
-        width = width,
-        height = 30,
+        row = container_y,
+        col = container_x,
+        width = result_width,
+        height = result_height,
         style = "minimal",
-        border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
-        title = " Results ",
+        border = "rounded",
+        title = " Result ",
         title_pos = "center",
     })
 
+    local preview_width = math.floor(container_width * 0.5)
+    local preview_height = container_height
     local prev_buf = vim.api.nvim_create_buf(false, true)
-    local _ = vim.api.nvim_open_win(prev_buf, false, {
+    local prev_win = vim.api.nvim_open_win(prev_buf, false, {
         relative = "editor",
-        row = 4,
-        col = 0 + width + 3,
-        width = width,
-        height = 30,
+        row = container_y,
+        col = container_x + preview_width + 3,
+        width = preview_width,
+        height = preview_height,
         style = "minimal",
-        border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
+        border = "rounded",
         title = " Preview ",
         title_pos = "center",
     })
@@ -106,6 +112,13 @@ function M.find_files()
     local cursorPos = 1
     local list = initial_files
 
+    vim.keymap.set("n", "<ESC>", function()
+        pcall(
+            function() vim.api.nvim_buf_delete(in_buf, { force = true }) end
+        )
+        vim.cmd('stopinsert')
+    end, { buffer = in_buf })
+
     vim.keymap.set("i", "<C-n>", function()
         cursorPos = cursorPos + 1
         if cursorPos > #list then
@@ -118,6 +131,8 @@ function M.find_files()
 
         local displ = ops.get_view_list(list, cursorPos)
 
+        local ext = vim.fn.fnamemodify(list[cursorPos], ":e")
+        vim.api.nvim_set_option_value("filetype", ext, { buf = prev_buf })
         local ls_output = ops.execute_shell_command({ 'bat', list[cursorPos] })
 
         vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, displ)
