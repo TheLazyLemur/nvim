@@ -2,8 +2,8 @@ local ops = {
 }
 
 function ops.get_all_files(input)
-    if input then
-        return ops.execute_shell_command({ "sh", "-c", "fd . --type f | rg " .. input })
+    if input or input == "" then
+        return ops.execute_shell_command({ "sh", "-c", "fd . --type f | fzf --filter " .. input })
     end
 
     return ops.execute_shell_command({ "fd", ".", "--type", "f" })
