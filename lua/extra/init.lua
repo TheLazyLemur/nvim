@@ -9,7 +9,6 @@ local plugins = {
   require("extra.plugins.cloak"),
   require("extra.plugins.vimdadbod"),
   require("extra.plugins.supermaven"),
-  require("extra.plugins.zellijnav"),
   require("extra.plugins.ollama"),
   require("extra.plugins.nui"),
 }
