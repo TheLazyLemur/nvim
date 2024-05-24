@@ -1,7 +1,6 @@
 local add, now, later = MiniDeps.add, MiniDeps.now, MiniDeps.later
 
 local plugins = {
-  require("extra.plugins.colorschemes"),
   require("extra.plugins.trouble"),
   require("extra.plugins.neotest"),
   require("extra.plugins.flash"),
