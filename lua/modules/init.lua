@@ -29,7 +29,8 @@ local modules = {
         m = "modules.findit",
         config = function()
             local findit = require("modules.findit")
-            vim.keymap.set("n", "<leader>ss", findit.find_files, { desc = "Test here" })
+            findit.setup()
+            vim.keymap.set("n", "<leader>sf", findit.find_files, { desc = "Test here" })
         end
     },
 }

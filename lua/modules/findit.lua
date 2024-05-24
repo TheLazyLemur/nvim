@@ -77,8 +77,8 @@ function M.spawn_buffers_and_windows(with_autocmds)
     local container_width = math.floor(vim.o.columns / 1.3)
     local container_height = math.floor(vim.o.lines / 1.3)
 
-    local container_x = math.floor((vim.o.columns - container_width) / 2)
-    local container_y = math.floor((vim.o.lines - container_height) / 2)
+    local container_x = 1
+    local container_y = math.floor((vim.o.lines - container_height) - 4)
 
     local input_width = math.floor(container_width * 0.5)
     local input_height = 1
@@ -141,16 +141,11 @@ function M.find_files()
 
     M.list = initial_files
 
-    vim.keymap.set("n", "<ESC>", function()
-        pcall(
-            function() vim.api.nvim_buf_delete(M.in_buf, { force = true }) end
-        )
-        vim.cmd('stopinsert')
-    end, { buffer = M.in_buf })
-
+    vim.keymap.set("n", "<ESC>", M.close, { buffer = M.in_buf })
     vim.keymap.set("i", "<C-n>", M.next, { buffer = M.in_buf })
     vim.keymap.set("i", "<C-p>", M.prev, { buffer = M.in_buf })
     vim.keymap.set("i", "<CR>", M.select, { buffer = M.in_buf })
+    vim.keymap.set("i", "<C-v>", function() M.select(true) end, { buffer = M.in_buf })
     vim.keymap.set("i", "<C-q>", M.send_to_quickfix, { buffer = M.in_buf })
 
     M.set_autocmds()
@@ -179,9 +174,11 @@ function M.close()
             vim.api.nvim_buf_delete(M.in_buf, { force = true })
             vim.api.nvim_buf_delete(M.out_buf, { force = true })
             vim.api.nvim_buf_delete(M.prev_buf, { force = true })
-            vim.cmd("stopinsert")
-            vim.cmd("augroup! FindIt-Input-TextChanged")
-            vim.cmd("augroup! FindIt-Input-BufLeave")
+            vim.cmd [[
+                stopinsert
+                augroup! FindIt-Input-TextChanged
+                augroup! FindIt-Input-BufLeave
+            ]]
         end
     )
 end
@@ -226,7 +223,13 @@ function M.prev()
     vim.api.nvim_win_set_cursor(M.out_win, { M.cursorPos, 0 })
 end
 
-function M.select()
+function M.select(split)
+    if split then
+        M.close()
+        vim.cmd('vsplit')
+        vim.cmd("e " .. M.list[M.cursorPos])
+        return
+    end
     M.close()
     vim.cmd('stopinsert')
     vim.cmd("e " .. M.list[M.cursorPos])
