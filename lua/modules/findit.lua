@@ -94,6 +94,7 @@ function M.spawn_buffers_and_windows(with_autocmds)
         title = " Input ",
         title_pos = "center",
     })
+    vim.api.nvim_win_set_option(M.in_win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
 
     local result_width = math.floor(container_width * 0.5)
     local result_height = math.floor((container_height) - container_height * 0.05) - input_height
@@ -109,6 +110,7 @@ function M.spawn_buffers_and_windows(with_autocmds)
         title = " Result ",
         title_pos = "center",
     })
+    vim.api.nvim_win_set_option(M.out_win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
 
     local preview_width = math.floor(container_width * 0.5)
     local preview_height = container_height
@@ -124,6 +126,7 @@ function M.spawn_buffers_and_windows(with_autocmds)
         title = " Preview ",
         title_pos = "center",
     })
+    vim.api.nvim_win_set_option(M.prev_win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
 
     if with_autocmds then
         M.set_autocmds()
