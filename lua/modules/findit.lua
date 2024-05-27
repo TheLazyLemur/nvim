@@ -2,10 +2,9 @@ local ops = {}
 
 function ops.get_all_files(input)
     if input or input == "" then
-        return ops.execute_shell_command({ "sh", "-c", "fd . --type f | fzf --filter " .. input })
+        return ops.execute_shell_command({ "sh", "-c", "rg --files | fzf --filter " .. input })
     end
-
-    return ops.execute_shell_command({ "fd", ".", "--type", "f" })
+    return ops.execute_shell_command({ "rg", "--files" })
 end
 
 function ops.get_exact_matches(value, list)
@@ -62,6 +61,25 @@ function ops.get_quickfix_list(list)
     return quickfix_list
 end
 
+function ops.spawn_windows(width, height, row, col, focus)
+    local buf = vim.api.nvim_create_buf(false, true)
+    local win = vim.api.nvim_open_win(buf, focus, {
+        relative = "editor",
+        row = row,
+        col = col,
+        width = width,
+        height = height,
+        style = "minimal",
+        border = "rounded",
+        title = " Input ",
+        title_pos = "center",
+    })
+
+    vim.api.nvim_win_set_option(win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
+
+    return buf, win
+end
+
 local M = {
     list = {},
     cursorPos = 1,
@@ -82,51 +100,17 @@ function M.spawn_buffers_and_windows(with_autocmds)
 
     local input_width = math.floor(container_width * 0.5)
     local input_height = 1
-    M.in_buf = vim.api.nvim_create_buf(false, true)
-    M.in_win = vim.api.nvim_open_win(M.in_buf, true, {
-        relative = "editor",
-        row = container_y + container_height - input_height,
-        col = container_x,
-        width = input_width,
-        height = input_height,
-        style = "minimal",
-        border = "rounded",
-        title = " Input ",
-        title_pos = "center",
-    })
-    vim.api.nvim_win_set_option(M.in_win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
+    local row = container_y + container_height - input_height
+    M.in_buf, M.in_win = ops.spawn_windows(input_width, input_height, row, container_x, true)
 
     local result_width = math.floor(container_width * 0.5)
     local result_height = math.floor((container_height) - container_height * 0.05) - input_height
-    M.out_buf = vim.api.nvim_create_buf(false, true)
-    M.out_win = vim.api.nvim_open_win(M.out_buf, false, {
-        relative = "editor",
-        row = container_y,
-        col = container_x,
-        width = result_width,
-        height = result_height,
-        style = "minimal",
-        border = "rounded",
-        title = " Result ",
-        title_pos = "center",
-    })
-    vim.api.nvim_win_set_option(M.out_win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
+    M.out_buf, M.out_win = ops.spawn_windows(result_width, result_height, container_y, container_x, false)
 
     local preview_width = math.floor(container_width * 0.5)
     local preview_height = container_height
-    M.prev_buf = vim.api.nvim_create_buf(false, true)
-    M.prev_win = vim.api.nvim_open_win(M.prev_buf, false, {
-        relative = "editor",
-        row = container_y,
-        col = container_x + preview_width + 3,
-        width = preview_width,
-        height = preview_height,
-        style = "minimal",
-        border = "rounded",
-        title = " Preview ",
-        title_pos = "center",
-    })
-    vim.api.nvim_win_set_option(M.prev_win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
+    local col = container_x + preview_width + 3
+    M.prev_buf, M.prev_win = ops.spawn_windows(preview_width, preview_height, container_y, col, false)
 
     if with_autocmds then
         M.set_autocmds()
