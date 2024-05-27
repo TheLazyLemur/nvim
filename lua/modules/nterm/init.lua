@@ -53,7 +53,7 @@ local function toggle_terminal(term_name)
     local row = math.floor((vim.o.lines - height) / 2)
     local col = math.floor((vim.o.columns - width) / 2)
 
-    local _ = vim.api.nvim_open_win(M.terminals[term_name], true, {
+    local win = vim.api.nvim_open_win(M.terminals[term_name], true, {
         relative = "editor",
         row = row,
         col = col,
@@ -64,6 +64,7 @@ local function toggle_terminal(term_name)
         title = "Terminal:" .. term_name,
         title_pos = "center",
     })
+    vim.api.nvim_win_set_option(win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
 
     if new then
         vim.cmd("terminal")
