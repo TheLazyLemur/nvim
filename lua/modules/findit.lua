@@ -61,7 +61,7 @@ function ops.get_quickfix_list(list)
     return quickfix_list
 end
 
-function ops.spawn_windows(width, height, row, col, focus)
+function ops.spawn_windows(width, height, row, col, focus, title)
     local buf = vim.api.nvim_create_buf(false, true)
     local win = vim.api.nvim_open_win(buf, focus, {
         relative = "editor",
@@ -71,7 +71,7 @@ function ops.spawn_windows(width, height, row, col, focus)
         height = height,
         style = "minimal",
         border = "rounded",
-        title = " Input ",
+        title = title,
         title_pos = "center",
     })
 
@@ -101,16 +101,16 @@ function M.spawn_buffers_and_windows(with_autocmds)
     local input_width = math.floor(container_width * 0.5)
     local input_height = 1
     local row = container_y + container_height - input_height
-    M.in_buf, M.in_win = ops.spawn_windows(input_width, input_height, row, container_x, true)
+    M.in_buf, M.in_win = ops.spawn_windows(input_width, input_height, row, container_x, true, " Input ")
 
     local result_width = math.floor(container_width * 0.5)
     local result_height = math.floor((container_height) - container_height * 0.05) - input_height
-    M.out_buf, M.out_win = ops.spawn_windows(result_width, result_height, container_y, container_x, false)
+    M.out_buf, M.out_win = ops.spawn_windows(result_width, result_height, container_y, container_x, false, " Results ")
 
     local preview_width = math.floor(container_width * 0.5)
     local preview_height = container_height
     local col = container_x + preview_width + 3
-    M.prev_buf, M.prev_win = ops.spawn_windows(preview_width, preview_height, container_y, col, false)
+    M.prev_buf, M.prev_win = ops.spawn_windows(preview_width, preview_height, container_y, col, false, " Preview ")
 
     if with_autocmds then
         M.set_autocmds()
