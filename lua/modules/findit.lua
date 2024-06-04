@@ -75,7 +75,7 @@ function ops.spawn_windows(width, height, row, col, focus, title)
         title_pos = "center",
     })
 
-    vim.api.nvim_win_set_option(win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
+    vim.api.nvim_set_option_value("winhl", 'Normal:MyFloat,FloatBorder:MyFloatBorder', { win = win, })
 
     return buf, win
 end
@@ -146,7 +146,7 @@ function M.on_input_changed()
     local displ = ops.get_view_list(M.list, M.cursorPos)
 
     if M.list[M.cursorPos] then
-        local ls_output = ops.execute_shell_command('bat ' .. M.list[M.cursorPos])
+        local ls_output = ops.execute_shell_command("bat " .. M.list[M.cursorPos])
         vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
     else
         vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, {})
@@ -184,7 +184,7 @@ function M.next()
 
     local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
     vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
-    local ls_output = ops.execute_shell_command({ 'bat', M.list[M.cursorPos] })
+    local ls_output = ops.execute_shell_command({ "bat", M.list[M.cursorPos] })
 
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
@@ -203,7 +203,7 @@ function M.prev()
 
     local displ = ops.get_view_list(M.list, M.cursorPos)
 
-    local ls_output = ops.execute_shell_command({ 'bat', M.list[M.cursorPos] })
+    local ls_output = ops.execute_shell_command({ "bat", M.list[M.cursorPos] })
 
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
@@ -246,7 +246,7 @@ function M.set_autocmds()
     })
 end
 
-function M.setup(opts)
+function M.setup(_)
 end
 
 return M

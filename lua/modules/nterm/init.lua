@@ -64,7 +64,7 @@ local function toggle_terminal(term_name)
         title = "Terminal:" .. term_name,
         title_pos = "center",
     })
-    vim.api.nvim_win_set_option(win, 'winhl', 'Normal:MyFloat,FloatBorder:MyFloatBorder')
+    vim.api.nvim_set_option_value("winhl", 'Normal:MyFloat,FloatBorder:MyFloatBorder', { win = win, })
 
     if new then
         vim.cmd("terminal")
