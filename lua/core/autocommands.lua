@@ -36,6 +36,7 @@ now(function()
         pattern = "*.templ",
         callback = function(_)
             vim.cmd("setfiletype templ")
+            vim.api.nvim_set_option_value("commentstring", "// %s", { scope = "local", })
         end
     })
 
