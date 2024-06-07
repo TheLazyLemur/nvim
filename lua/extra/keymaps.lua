@@ -6,10 +6,6 @@ later(function()
   vim.keymap.set("n", "<leader>jj", function() require("flash").jump() end)
   vim.keymap.set("n", "<leader>jt", function() require("flash").treesitter() end)
 
-  vim.keymap.set("n", "<leader>tt", require("neotest").run.run)
-  vim.keymap.set("n", "<leader>tf", function() require("neotest").run.run(vim.fn.expand("%")) end)
-  vim.keymap.set("n", "<leader>ts", require("neotest").summary.open)
-
   vim.keymap.set("n", "<leader>xx", function() require("trouble").toggle() end)
   vim.keymap.set("n", "<leader>xw", function() require("trouble").toggle("workspace_diagnostics") end)
   vim.keymap.set("n", "<leader>xd", function() require("trouble").toggle("document_diagnostics") end)
@@ -27,3 +23,14 @@ later(function()
   end, { desc = 'Debug: Set Breakpoint' })
   vim.keymap.set('n', '<F7>', dapui.toggle, { desc = 'Debug: See last session result.' })
 end)
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("user-plugins-lsp-attach", { clear = true }),
+  pattern = "*.go",
+  callback = function(event)
+    vim.keymap.set("n", "<leader>tc", function() vim.cmd(":GoTestSubCase -v -F") end)
+    vim.keymap.set("n", "<leader>tf", function() vim.cmd(":GoTestFunc -v -F") end)
+    vim.keymap.set("n", "<leader>tt", function() vim.cmd(":GoTestFile -v -F") end)
+    vim.keymap.set("n", "<leader>tp", function() vim.cmd(":GoTestPkg -v -F") end)
+  end,
+})
