@@ -139,6 +139,8 @@ function M.on_input_changed()
     local displ = M.get_view_list(M.list, M.cursorPos)
 
     if M.list[M.cursorPos] then
+        local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
+        vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
         local ls_output = M.execute_shell_command("bat " .. M.list[M.cursorPos])
         vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
 
@@ -208,6 +210,8 @@ function M.prev()
 
     local displ = M.get_view_list(M.list, M.cursorPos)
 
+    local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
+    vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
     local ls_output = M.execute_shell_command({ "bat", M.list[M.cursorPos] })
 
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
