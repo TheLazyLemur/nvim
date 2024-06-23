@@ -126,7 +126,7 @@ function M.on_input_changed()
     local filter_value = vim.api.nvim_buf_get_lines(M.in_buf, 0, -1, false)[1]
 
     local contains_colon = string.find(filter_value, ":")
-    M.line_number = 0
+    M.line_number = 1
 
     if contains_colon then
         local first_part, second_part = filter_value:match("([^:]*):(.*)")
