@@ -71,6 +71,11 @@ local servers = {
   },
 }
 
+local lsp_configs = require("lspconfig")
+lsp_configs.gleam.setup {
+  cmd = { "gleam", "lsp" },
+}
+
 require("mason").setup()
 
 local ensure_installed = vim.tbl_keys(servers or {})
