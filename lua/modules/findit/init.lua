@@ -72,6 +72,7 @@ local M = {
     prev_win = nil,
     out_buf = nil,
     out_win = nil,
+    line_number = nil,
 }
 
 function M.spawn_buffers_and_windows(with_autocmds)
@@ -123,14 +124,25 @@ end
 
 function M.on_input_changed()
     M.cursorPos = 1
-    local filter_value = vim.api.nvim_buf_get_lines(M.in_buf, 0, -1, false)
-    M.list = ops.get_all_files(filter_value[1])
+    local filter_value = vim.api.nvim_buf_get_lines(M.in_buf, 0, -1, false)[1]
+
+    local contains_colon = string.find(filter_value, ":")
+    M.line_number = 0
+
+    if contains_colon then
+        local first_part, second_part = filter_value:match("([^:]*):(.*)")
+        filter_value = first_part
+        M.line_number = tonumber(second_part)
+    end
+
+    M.list = ops.get_all_files(filter_value)
 
     local displ = ops.get_view_list(M.list, M.cursorPos)
 
     if M.list[M.cursorPos] then
         local ls_output = ops.execute_shell_command("bat " .. M.list[M.cursorPos])
         vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
+        pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
     else
         vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, {})
     end
@@ -194,15 +206,15 @@ function M.prev()
 end
 
 function M.select(split)
-    if split then
-        M.close()
-        vim.cmd('vsplit')
-        vim.cmd("e " .. M.list[M.cursorPos])
-        return
-    end
     M.close()
+    if split then
+        vim.cmd('vsplit')
+    end
+
     vim.cmd('stopinsert')
     vim.cmd("e " .. M.list[M.cursorPos])
+
+    pcall(vim.api.nvim_win_set_cursor, 0, { M.line_number, 0 })
 end
 
 function M.send_to_quickfix()
