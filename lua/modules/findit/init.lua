@@ -141,7 +141,12 @@ function M.on_input_changed()
     if M.list[M.cursorPos] then
         local ls_output = M.execute_shell_command("bat " .. M.list[M.cursorPos])
         vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
-        pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
+
+        local ok = pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
+        if not ok then
+            local total_lines = vim.api.nvim_buf_line_count(M.prev_buf)
+            pcall(vim.api.nvim_win_set_cursor, M.prev_win, { total_lines, 0 })
+        end
     else
         vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, {})
     end
@@ -183,6 +188,11 @@ function M.next()
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
     vim.api.nvim_win_set_cursor(M.out_win, { M.cursorPos, 0 })
+    local ok = pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
+    if not ok then
+        local total_lines = vim.api.nvim_buf_line_count(M.prev_buf)
+        pcall(vim.api.nvim_win_set_cursor, M.prev_win, { total_lines, 0 })
+    end
 end
 
 function M.prev()
@@ -202,6 +212,11 @@ function M.prev()
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
     vim.api.nvim_win_set_cursor(M.out_win, { M.cursorPos, 0 })
+    local ok = pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
+    if not ok then
+        local total_lines = vim.api.nvim_buf_line_count(M.prev_buf)
+        pcall(vim.api.nvim_win_set_cursor, M.prev_win, { total_lines, 0 })
+    end
 end
 
 function M.select(split)
@@ -213,7 +228,11 @@ function M.select(split)
     vim.cmd('stopinsert')
     vim.cmd("e " .. M.list[M.cursorPos])
 
-    pcall(vim.api.nvim_win_set_cursor, 0, { M.line_number, 0 })
+    local ok = pcall(vim.api.nvim_win_set_cursor, 0, { M.line_number, 0 })
+    if not ok then
+        local total_lines = vim.api.nvim_buf_line_count(0)
+        pcall(vim.api.nvim_win_set_cursor, 0, { total_lines, 0 })
+    end
 end
 
 function M.send_to_quickfix()
