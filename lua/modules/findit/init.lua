@@ -1,3 +1,5 @@
+local lo = require("lo")
+
 local ops = {}
 
 function ops.get_all_files(input)
@@ -7,30 +9,14 @@ function ops.get_all_files(input)
     return ops.execute_shell_command({ "rg", "--files" })
 end
 
-function ops.get_exact_matches(value, list)
-    local exact_matches = {}
-    for _, v in ipairs(list) do
-        local match = string.match(v, value)
-        if match then
-            table.insert(exact_matches, v)
-        end
-    end
-
-    return exact_matches
-end
-
 function ops.get_view_list(list, cursorPos)
-    local view_list = {}
-
-    for i, v in ipairs(list) do
+    return lo.map(list, function(i, v)
         if i ~= cursorPos then
-            view_list[i] = v
+            return v
         else
-            view_list[i] = "> " .. v
+            return "> " .. v
         end
-    end
-
-    return view_list
+    end)
 end
 
 function ops.execute_shell_command(command)
@@ -50,15 +36,12 @@ function ops.execute_shell_command(command)
 end
 
 function ops.get_quickfix_list(list)
-    local quickfix_list = {}
-    for _, v in ipairs(list) do
-        table.insert(quickfix_list, {
+    return lo.map(list, function(_, v)
+        return {
             filename = v,
             text = v
-        })
-    end
-
-    return quickfix_list
+        }
+    end)
 end
 
 function ops.spawn_windows(width, height, row, col, focus, title)
@@ -229,14 +212,34 @@ function M.send_to_quickfix()
     vim.cmd([[
            stopinsert
            copen
-        ]])
+    ]])
+end
+
+local function debounce(func, timeout)
+    local timer_id
+    return function(...)
+        local args = { ... }
+        if timer_id then
+            vim.loop.timer_stop(timer_id)
+            vim.loop.close(timer_id)
+        end
+        timer_id = vim.loop.new_timer()
+        timer_id:start(timeout, 0, vim.schedule_wrap(function()
+            func(unpack(args))
+            timer_id = nil
+        end))
+    end
 end
 
 function M.set_autocmds()
+    local echo_line_number = debounce(function()
+        M.on_input_changed()
+    end, 500)
+
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
         buffer = M.in_buf,
         group = vim.api.nvim_create_augroup("FindIt-Input-TextChanged", { clear = true }),
-        callback = M.on_input_changed,
+        callback = echo_line_number,
     })
 
     vim.api.nvim_create_autocmd("BufLeave", {
