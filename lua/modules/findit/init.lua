@@ -244,14 +244,14 @@ local function debounce(func, timeout)
 end
 
 function M.set_autocmds()
-    local echo_line_number = debounce(function()
+    local debounced_input = debounce(function()
         M.on_input_changed()
     end, 500)
 
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
         buffer = M.in_buf,
         group = vim.api.nvim_create_augroup("FindIt-Input-TextChanged", { clear = true }),
-        callback = echo_line_number,
+        callback = debounced_input,
     })
 
     vim.api.nvim_create_autocmd("BufLeave", {
