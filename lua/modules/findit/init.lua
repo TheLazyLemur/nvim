@@ -188,6 +188,7 @@ function M.next()
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
     vim.api.nvim_win_set_cursor(M.out_win, { M.cursorPos, 0 })
+
     local ok = pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
     if not ok then
         local total_lines = vim.api.nvim_buf_line_count(M.prev_buf)
@@ -212,6 +213,7 @@ function M.prev()
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
     vim.api.nvim_win_set_cursor(M.out_win, { M.cursorPos, 0 })
+
     local ok = pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
     if not ok then
         local total_lines = vim.api.nvim_buf_line_count(M.prev_buf)
@@ -245,31 +247,27 @@ function M.send_to_quickfix()
     ]])
 end
 
-local function debounce(func, timeout)
-    local timer_id
-    return function(...)
-        local args = { ... }
-        if timer_id then
-            vim.loop.timer_stop(timer_id)
-            vim.loop.close(timer_id)
-        end
-        timer_id = vim.loop.new_timer()
-        timer_id:start(timeout, 0, vim.schedule_wrap(function()
-            func(unpack(args))
-            timer_id = nil
-        end))
-    end
-end
-
 function M.set_autocmds()
-    local debounced_input = debounce(function()
-        M.on_input_changed()
-    end, 500)
+    local debounced_input = function()
+        local input_timer = vim.loop.new_timer()
+        local input_timeout = 150
+
+        return function()
+            if input_timer then
+                vim.loop.timer_stop(input_timer)
+                vim.loop.close(input_timer)
+            end
+            input_timer = vim.loop.new_timer()
+            input_timer:start(input_timeout, 0, vim.schedule_wrap(function()
+                M.on_input_changed()
+            end))
+        end
+    end
 
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
         buffer = M.in_buf,
         group = vim.api.nvim_create_augroup("FindIt-Input-TextChanged", { clear = true }),
-        callback = debounced_input,
+        callback = debounced_input(),
     })
 
     vim.api.nvim_create_autocmd("BufLeave", {
@@ -282,4 +280,9 @@ end
 function M.setup(_)
 end
 
-return M
+local findit = {
+    setup = M.setup,
+    find_files = M.find_files,
+}
+
+return findit
