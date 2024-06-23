@@ -1,15 +1,25 @@
 local lo = require("lo")
 
-local ops = {}
+local M = {
+    list = {},
+    cursorPos = 1,
+    in_buf = nil,
+    in_win = nil,
+    prev_buf = nil,
+    prev_win = nil,
+    out_buf = nil,
+    out_win = nil,
+    line_number = nil,
+}
 
-function ops.get_all_files(input)
+function M.get_all_files(input)
     if input or input == "" then
-        return ops.execute_shell_command({ "sh", "-c", "rg --files | fzf --filter " .. input })
+        return M.execute_shell_command({ "sh", "-c", "rg --files | fzf --filter " .. input })
     end
-    return ops.execute_shell_command({ "rg", "--files" })
+    return M.execute_shell_command({ "rg", "--files" })
 end
 
-function ops.get_view_list(list, cursorPos)
+function M.get_view_list(list, cursorPos)
     return lo.map(list, function(i, v)
         if i ~= cursorPos then
             return v
@@ -19,7 +29,7 @@ function ops.get_view_list(list, cursorPos)
     end)
 end
 
-function ops.execute_shell_command(command)
+function M.execute_shell_command(command)
     local out = vim.fn.system(command)
     local lines = {}
     for line in out:gmatch("([^\n]*)\n?") do
@@ -35,16 +45,17 @@ function ops.execute_shell_command(command)
     return lines
 end
 
-function ops.get_quickfix_list(list)
+function M.get_quickfix_list(list, line_number)
     return lo.map(list, function(_, v)
         return {
             filename = v,
+            lnum = line_number,
             text = v
         }
     end)
 end
 
-function ops.spawn_windows(width, height, row, col, focus, title)
+function M.spawn_windows(width, height, row, col, focus, title)
     local buf = vim.api.nvim_create_buf(false, true)
     local win = vim.api.nvim_open_win(buf, focus, {
         relative = "editor",
@@ -63,18 +74,6 @@ function ops.spawn_windows(width, height, row, col, focus, title)
     return buf, win
 end
 
-local M = {
-    list = {},
-    cursorPos = 1,
-    in_buf = nil,
-    in_win = nil,
-    prev_buf = nil,
-    prev_win = nil,
-    out_buf = nil,
-    out_win = nil,
-    line_number = nil,
-}
-
 function M.spawn_buffers_and_windows(with_autocmds)
     local container_width = math.floor(vim.o.columns / 1.3)
     local container_height = math.floor(vim.o.lines / 1.3)
@@ -85,16 +84,16 @@ function M.spawn_buffers_and_windows(with_autocmds)
     local input_width = math.floor(container_width * 0.5)
     local input_height = 1
     local row = container_y + container_height - input_height
-    M.in_buf, M.in_win = ops.spawn_windows(input_width, input_height, row, container_x, true, " Input ")
+    M.in_buf, M.in_win = M.spawn_windows(input_width, input_height, row, container_x, true, " Input ")
 
     local result_width = math.floor(container_width * 0.5)
     local result_height = math.floor((container_height) - container_height * 0.05) - input_height
-    M.out_buf, M.out_win = ops.spawn_windows(result_width, result_height, container_y, container_x, false, " Results ")
+    M.out_buf, M.out_win = M.spawn_windows(result_width, result_height, container_y, container_x, false, " Results ")
 
     local preview_width = math.floor(container_width * 0.5)
     local preview_height = container_height
     local col = container_x + preview_width + 3
-    M.prev_buf, M.prev_win = ops.spawn_windows(preview_width, preview_height, container_y, col, false, " Preview ")
+    M.prev_buf, M.prev_win = M.spawn_windows(preview_width, preview_height, container_y, col, false, " Preview ")
 
     if with_autocmds then
         M.set_autocmds()
@@ -104,8 +103,8 @@ end
 function M.find_files()
     M.spawn_buffers_and_windows()
 
-    local initial_files = ops.get_all_files()
-    local intial_displ = ops.get_view_list(initial_files, 1)
+    local initial_files = M.get_all_files()
+    local intial_displ = M.get_view_list(initial_files, 1)
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, intial_displ)
 
     vim.cmd("startinsert")
@@ -135,12 +134,12 @@ function M.on_input_changed()
         M.line_number = tonumber(second_part)
     end
 
-    M.list = ops.get_all_files(filter_value)
+    M.list = M.get_all_files(filter_value)
 
-    local displ = ops.get_view_list(M.list, M.cursorPos)
+    local displ = M.get_view_list(M.list, M.cursorPos)
 
     if M.list[M.cursorPos] then
-        local ls_output = ops.execute_shell_command("bat " .. M.list[M.cursorPos])
+        local ls_output = M.execute_shell_command("bat " .. M.list[M.cursorPos])
         vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
         pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
     else
@@ -175,11 +174,11 @@ function M.next()
         M.cursorPos = 1
     end
 
-    local displ = ops.get_view_list(M.list, M.cursorPos)
+    local displ = M.get_view_list(M.list, M.cursorPos)
 
     local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
     vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
-    local ls_output = ops.execute_shell_command({ "bat", M.list[M.cursorPos] })
+    local ls_output = M.execute_shell_command({ "bat", M.list[M.cursorPos] })
 
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
@@ -196,9 +195,9 @@ function M.prev()
         M.cursorPos = 1
     end
 
-    local displ = ops.get_view_list(M.list, M.cursorPos)
+    local displ = M.get_view_list(M.list, M.cursorPos)
 
-    local ls_output = ops.execute_shell_command({ "bat", M.list[M.cursorPos] })
+    local ls_output = M.execute_shell_command({ "bat", M.list[M.cursorPos] })
 
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
@@ -218,7 +217,7 @@ function M.select(split)
 end
 
 function M.send_to_quickfix()
-    local quickfix_list = ops.get_quickfix_list(M.list)
+    local quickfix_list = M.get_quickfix_list(M.list, M.line_number)
     vim.fn.setqflist(quickfix_list)
     M.close()
     vim.cmd([[
