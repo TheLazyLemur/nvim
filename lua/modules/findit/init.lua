@@ -13,24 +13,7 @@ local M = {
     favorites = {},
 }
 
-function M.get_all_files(input)
-    if input or input == "" then
-        return M.execute_shell_command({ "sh", "-c", "rg --files | fzf --filter " .. input })
-    end
-    return M.execute_shell_command({ "rg", "--files" })
-end
-
-function M.get_view_list(list, cursorPos)
-    return lo.map(list, function(i, v)
-        if i ~= cursorPos then
-            return v
-        else
-            return "> " .. v
-        end
-    end)
-end
-
-function M.execute_shell_command(command)
+local function execute_shell_command(command)
     local out = vim.fn.system(command)
     local lines = {}
     for line in out:gmatch("([^\n]*)\n?") do
@@ -44,6 +27,42 @@ function M.execute_shell_command(command)
     end
 
     return lines
+end
+
+function M.update_results_window(displ)
+    if M.list[M.cursorPos] then
+        local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
+        vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
+        local ls_output = execute_shell_command("bat " .. M.list[M.cursorPos])
+        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
+
+        local ok = pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
+        if not ok then
+            local total_lines = vim.api.nvim_buf_line_count(M.prev_buf)
+            pcall(vim.api.nvim_win_set_cursor, M.prev_win, { total_lines, 0 })
+        end
+    else
+        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, {})
+    end
+
+    vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
+end
+
+function M.get_all_files(input)
+    if input or input == "" then
+        return execute_shell_command({ "sh", "-c", "rg --files | fzf --filter " .. input })
+    end
+    return execute_shell_command({ "rg", "--files" })
+end
+
+function M.get_view_list(list, cursorPos)
+    return lo.map(list, function(i, v)
+        if i ~= cursorPos then
+            return v
+        else
+            return "> " .. v
+        end
+    end)
 end
 
 function M.get_quickfix_list(list, line_number)
@@ -113,10 +132,10 @@ function M.find_files()
     M.list = initial_files
 
     vim.keymap.set("n", "<ESC>", M.close, { buffer = M.in_buf })
-    vim.keymap.set("i", "<C-n>", M.next, { buffer = M.in_buf })
-    vim.keymap.set("i", "<C-p>", M.prev, { buffer = M.in_buf })
-    vim.keymap.set("i", "<CR>", M.select, { buffer = M.in_buf })
-    vim.keymap.set("i", "<C-v>", function() M.select(true) end, { buffer = M.in_buf })
+    vim.keymap.set("i", "<C-n>", M.next_item, { buffer = M.in_buf })
+    vim.keymap.set("i", "<C-p>", M.prev_item, { buffer = M.in_buf })
+    vim.keymap.set("i", "<CR>", M.select_item, { buffer = M.in_buf })
+    vim.keymap.set("i", "<C-v>", function() M.select_item(true) end, { buffer = M.in_buf })
     vim.keymap.set("i", "<C-q>", M.send_to_quickfix, { buffer = M.in_buf })
     vim.keymap.set("i", "<C-f>", M.add_to_favorites, { buffer = M.in_buf })
     vim.keymap.set("i", "<C-d>", M.display_favorites, { buffer = M.in_buf })
@@ -141,22 +160,7 @@ function M.on_input_changed()
 
     local displ = M.get_view_list(M.list, M.cursorPos)
 
-    if M.list[M.cursorPos] then
-        local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
-        vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
-        local ls_output = M.execute_shell_command("bat " .. M.list[M.cursorPos])
-        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
-
-        local ok = pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
-        if not ok then
-            local total_lines = vim.api.nvim_buf_line_count(M.prev_buf)
-            pcall(vim.api.nvim_win_set_cursor, M.prev_win, { total_lines, 0 })
-        end
-    else
-        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, {})
-    end
-
-    vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
+    M.update_results_window(displ)
 end
 
 function M.close()
@@ -174,7 +178,7 @@ function M.close()
     )
 end
 
-function M.next()
+function M.next_item()
     M.cursorPos = M.cursorPos + 1
     if M.cursorPos > #M.list then
         M.cursorPos = #M.list
@@ -188,7 +192,7 @@ function M.next()
 
     local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
     vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
-    local ls_output = M.execute_shell_command({ "bat", M.list[M.cursorPos] })
+    local ls_output = execute_shell_command({ "bat", M.list[M.cursorPos] })
 
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
@@ -201,7 +205,7 @@ function M.next()
     end
 end
 
-function M.prev()
+function M.prev_item()
     M.cursorPos = M.cursorPos - 1
     if M.cursorPos > #M.list then
         M.cursorPos = #M.list
@@ -215,7 +219,7 @@ function M.prev()
 
     local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
     vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
-    local ls_output = M.execute_shell_command({ "bat", M.list[M.cursorPos] })
+    local ls_output = execute_shell_command({ "bat", M.list[M.cursorPos] })
 
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
     vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
@@ -228,7 +232,7 @@ function M.prev()
     end
 end
 
-function M.select(split)
+function M.select_item(split)
     M.close()
     if split then
         vim.cmd('vsplit')
@@ -262,25 +266,8 @@ end
 function M.display_favorites()
     M.cursorPos = 1
     M.list = M.favorites
-
     local displ = M.get_view_list(M.list, M.cursorPos)
-
-    if M.list[M.cursorPos] then
-        local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
-        vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
-        local ls_output = M.execute_shell_command("bat " .. M.list[M.cursorPos])
-        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
-
-        local ok = pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
-        if not ok then
-            local total_lines = vim.api.nvim_buf_line_count(M.prev_buf)
-            pcall(vim.api.nvim_win_set_cursor, M.prev_win, { total_lines, 0 })
-        end
-    else
-        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, {})
-    end
-
-    vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
+    M.update_results_window(displ)
 end
 
 function M.set_autocmds()
