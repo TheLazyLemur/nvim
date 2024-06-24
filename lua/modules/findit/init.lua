@@ -10,6 +10,7 @@ local M = {
     out_buf = nil,
     out_win = nil,
     line_number = nil,
+    favorites = {},
 }
 
 function M.get_all_files(input)
@@ -117,6 +118,8 @@ function M.find_files()
     vim.keymap.set("i", "<CR>", M.select, { buffer = M.in_buf })
     vim.keymap.set("i", "<C-v>", function() M.select(true) end, { buffer = M.in_buf })
     vim.keymap.set("i", "<C-q>", M.send_to_quickfix, { buffer = M.in_buf })
+    vim.keymap.set("i", "<C-f>", M.add_to_favorites, { buffer = M.in_buf })
+    vim.keymap.set("i", "<C-d>", M.display_favorites, { buffer = M.in_buf })
 
     M.set_autocmds()
 end
@@ -249,6 +252,35 @@ function M.send_to_quickfix()
            stopinsert
            copen
     ]])
+end
+
+function M.add_to_favorites()
+    local file = M.list[M.cursorPos]
+    table.insert(M.favorites, file)
+end
+
+function M.display_favorites()
+    M.cursorPos = 1
+    M.list = M.favorites
+
+    local displ = M.get_view_list(M.list, M.cursorPos)
+
+    if M.list[M.cursorPos] then
+        local ext = vim.fn.fnamemodify(M.list[M.cursorPos], ":e")
+        vim.api.nvim_set_option_value("filetype", ext, { buf = M.prev_buf })
+        local ls_output = M.execute_shell_command("bat " .. M.list[M.cursorPos])
+        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, ls_output)
+
+        local ok = pcall(vim.api.nvim_win_set_cursor, M.prev_win, { M.line_number, 0 })
+        if not ok then
+            local total_lines = vim.api.nvim_buf_line_count(M.prev_buf)
+            pcall(vim.api.nvim_win_set_cursor, M.prev_win, { total_lines, 0 })
+        end
+    else
+        vim.api.nvim_buf_set_lines(M.prev_buf, 0, -1, false, {})
+    end
+
+    vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
 end
 
 function M.set_autocmds()
