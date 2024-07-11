@@ -1,6 +1,10 @@
 local now = MiniDeps.now
 
 now(function()
+    vim.cmd [[
+        command! CopyPath let @+=expand('%:p') . ':' . line('.') . ':' . col('.') | call system('echo ' . expand('%:p') . ':' . line('.') . ':' . col('.') . ' | xclip -selection clipboard')
+    ]]
+
     vim.api.nvim_create_autocmd("TextYankPost", {
         desc = "Highlight when yanking (copying) text",
         group = vim.api.nvim_create_augroup("user-highlight-yank", { clear = true }),
