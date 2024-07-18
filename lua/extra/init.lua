@@ -12,6 +12,7 @@ local plugins = {
   require("extra.plugins.ollama"),
   require("extra.plugins.nui"),
   require("extra.plugins.neotree"),
+  require("extra.plugins.oxocarbon"),
 }
 
 for _, plugin in ipairs(plugins) do
