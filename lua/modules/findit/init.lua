@@ -48,10 +48,15 @@ function M.update_results_window(displ)
     vim.api.nvim_buf_set_lines(M.out_buf, 0, -1, false, displ)
 end
 
-function M.get_all_files(input)
+function M.get_all_files(input, with_dir)
+    if with_dir then
+        return execute_shell_command({ "sh", "-c", "rg " .. with_dir .. " --files | fzf --filter " .. input })
+    end
+
     if input or input == "" then
         return execute_shell_command({ "sh", "-c", "rg --files | fzf --filter " .. input })
     end
+
     return execute_shell_command({ "rg", "--files" })
 end
 
@@ -120,7 +125,11 @@ function M.spawn_buffers_and_windows(with_autocmds)
     end
 end
 
-function M.find_files()
+function M.find_files(with_dir)
+    if with_dir then
+        M.with_dir = with_dir
+    end
+
     M.spawn_buffers_and_windows()
 
     local initial_files = M.get_all_files()
@@ -156,7 +165,7 @@ function M.on_input_changed()
         M.line_number = tonumber(second_part)
     end
 
-    M.list = M.get_all_files(filter_value)
+    M.list = M.get_all_files(filter_value, M.with_dir)
 
     local displ = M.get_view_list(M.list, M.cursorPos)
 
@@ -305,7 +314,7 @@ end
 
 local findit = {
     setup = M.setup,
-    find_files = M.find_files,
+    find_files = function(with_dir) M.find_files(with_dir) end,
 }
 
 return findit
