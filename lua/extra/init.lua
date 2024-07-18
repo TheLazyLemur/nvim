@@ -11,6 +11,7 @@ local plugins = {
   require("extra.plugins.supermaven"),
   require("extra.plugins.ollama"),
   require("extra.plugins.nui"),
+  require("extra.plugins.neotree"),
 }
 
 for _, plugin in ipairs(plugins) do
