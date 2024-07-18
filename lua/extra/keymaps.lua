@@ -8,6 +8,8 @@ later(function()
 
   vim.keymap.set("n", "<leader>xx", ":Trouble diagnostics toggle<cr>")
 
+  vim.keymap.set("n", "<leader>tt", ":Neotree<cr>")
+
   vim.keymap.set("n", "<leader>bp", ":BufferLineTogglePin<cr>")
   vim.keymap.set("n", "<leader>bf", ":BufferLinePick<cr>")
   vim.keymap.set("n", "<leader>bq", ":BufferLinePickClose<cr>")
