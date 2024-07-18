@@ -8,6 +8,12 @@ later(function()
 
   vim.keymap.set("n", "<leader>xx", ":Trouble diagnostics toggle<cr>")
 
+  vim.keymap.set("n", "<leader>bp", ":BufferLineTogglePin<cr>")
+  vim.keymap.set("n", "<leader>bf", ":BufferLinePick<cr>")
+  vim.keymap.set("n", "<leader>bq", ":BufferLinePickClose<cr>")
+  vim.keymap.set("n", "<Tab>", ":BufferLineCycleNext<cr>")
+  vim.keymap.set("n", "<S-Tab>", ":BufferLineCyclePrev<cr>")
+
   vim.keymap.set('n', '<F5>', dap.continue, { desc = 'Debug: Start/Continue' })
   vim.keymap.set('n', '<F1>', dap.step_into, { desc = 'Debug: Step Into' })
   vim.keymap.set('n', '<F2>', dap.step_over, { desc = 'Debug: Step Over' })

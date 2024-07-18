@@ -68,6 +68,7 @@ local function toggle_terminal(term_name)
 
     if new then
         vim.cmd("terminal")
+        vim.api.nvim_set_option_value("filetype", "terminal", { buf = M.terminals[term_name] })
         set_buf_maps(M.terminals[term_name])
     end
 
