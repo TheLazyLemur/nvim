@@ -2,14 +2,12 @@ local add, now, later = MiniDeps.add, MiniDeps.now, MiniDeps.later
 
 local plugins = {
   require("extra.plugins.trouble"),
-  require("extra.plugins.neotest"),
   require("extra.plugins.flash"),
   require("extra.plugins.gonvim"),
   require("extra.plugins.debug"),
   require("extra.plugins.cloak"),
   require("extra.plugins.vimdadbod"),
   require("extra.plugins.supermaven"),
-  require("extra.plugins.ollama"),
   require("extra.plugins.nui"),
   require("extra.plugins.neotree"),
   require("extra.plugins.oxocarbon"),
