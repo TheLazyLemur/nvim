@@ -19,20 +19,6 @@ local modules = {
             end
         end
     },
-    {
-        m = "modules.fs",
-        config = function()
-            vim.keymap.set("n", "-", require("modules.fs").spawn_buffer)
-        end
-    },
-    {
-        m = "modules.findit",
-        config = function()
-            local findit = require("modules.findit")
-            findit.setup()
-            -- vim.keymap.set("n", "<leader>sf", findit.find_files, { desc = "Test here" })
-        end
-    },
 }
 
 for _, module in pairs(modules) do
