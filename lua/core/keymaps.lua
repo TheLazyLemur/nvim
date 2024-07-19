@@ -3,9 +3,15 @@ local M = {}
 local now = MiniDeps.now
 
 now(function()
-  vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+  vim.keymap.set("n", "<leader>cp", function()
+    local absolute_path = vim.api.nvim_buf_get_name(0)
+    local last_directory = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+    local relative_path = vim.fn.fnamemodify(absolute_path, ":.")
+    local line_number = vim.api.nvim_win_get_cursor(0)[1]
+    vim.fn.setreg('+', last_directory .. "/" .. relative_path .. ":" .. line_number)
+  end)
 
-  vim.keymap.set("n", "<leader>cp", ":CopyPath<CR>")
+  vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
   vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous [D]iagnostic message" })
   vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next [D]iagnostic message" })
@@ -43,7 +49,7 @@ now(function()
   vim.keymap.set('t', '<M-k>', '<Up>', { desc = 'Up' })
   vim.keymap.set('t', '<M-l>', '<Right>', { desc = 'Right' })
 
-  vim.keymap.set("n", "<leader>-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+  vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 
   local builtin = require "telescope.builtin"
   vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
