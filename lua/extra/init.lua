@@ -10,7 +10,7 @@ local plugins = {
   require("extra.plugins.supermaven"),
   require("extra.plugins.nui"),
   require("extra.plugins.neotree"),
-  require("extra.plugins.oxocarbon"),
+  require("extra.plugins.colorschemes"),
 }
 
 for _, plugin in ipairs(plugins) do
