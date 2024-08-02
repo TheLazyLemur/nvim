@@ -50,25 +50,14 @@ add({
     "williamboman/mason-lspconfig.nvim",
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     "folke/neodev.nvim",
-    "hrsh7th/cmp-nvim-lsp",
   },
 })
 
 require("neodev").setup()
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
 
 local servers = {
-  lua_ls = {
-    settings = {
-      Lua = {
-        completion = {
-          callSnippet = "Replace",
-        },
-      },
-    },
-  },
 }
 
 local lsp_configs = require("lspconfig")
@@ -95,71 +84,9 @@ require("mason-lspconfig").setup {
 }
 
 add({
-  source = "hrsh7th/nvim-cmp",
-  depends = {
-    "L3MON4D3/LuaSnip",
-    "saadparwaiz1/cmp_luasnip",
-    "hrsh7th/cmp-nvim-lsp",
-    "hrsh7th/cmp-path",
-    "onsails/lspkind.nvim",
-  },
+  source = "echasnovski/mini.completion",
 })
-
-local cmp = require "cmp"
-local luasnip = require "luasnip"
-local lspkind = require('lspkind')
-
-luasnip.config.setup {}
-cmp.setup {
-  ---@diagnostic disable-next-line: missing-fields
-  formatting = {
-    format = lspkind.cmp_format({
-      mode = 'symbol',
-      maxwidth = 50,
-      ellipsis_char = '...',
-      show_labelDetails = true,
-      before = function(_, vim_item)
-        return vim_item
-      end
-    })
-  },
-  snippet = {
-    expand = function(args)
-      luasnip.lsp_expand(args.body)
-    end,
-  },
-  completion = { completeopt = "menu,menuone,noinsert" },
-  mapping = cmp.mapping.preset.insert {
-    ["<C-n>"] = cmp.mapping.select_next_item(),
-    ["<C-p>"] = cmp.mapping.select_prev_item(),
-    ["<C-b>"] = cmp.mapping.scroll_docs(-4),
-    ["<C-f>"] = cmp.mapping.scroll_docs(4),
-    ["<C-y>"] = cmp.mapping.confirm { select = true },
-    ["<C-Space>"] = cmp.mapping.complete {},
-    ["<C-l>"] = cmp.mapping(function()
-      if luasnip.expand_or_locally_jumpable() then
-        luasnip.expand_or_jump()
-      end
-    end, { "i", "s" }),
-    ["<C-h>"] = cmp.mapping(function()
-      if luasnip.locally_jumpable(-1) then
-        luasnip.jump(-1)
-      end
-    end, { "i", "s" }),
-  },
-  sources = {
-    { name = "nvim_lsp" },
-    { name = "luasnip" },
-    { name = "path" },
-  },
-}
-
-cmp.setup.filetype({ "sql" }, {
-  sources = {
-    { name = "vim-dadbod-completion" },
-    { name = "buffer" },
-  }
-})
+require('mini.completion').setup()
 
 add({
   source = "nvim-treesitter/nvim-treesitter",
