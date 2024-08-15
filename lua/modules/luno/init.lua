@@ -87,10 +87,46 @@ local function run_luno_imports()
     vim.cmd("write")
 end
 
+local function run_go_fumpt()
+    local current_file = vim.fn.expand("%:p")
+    local base_pos = find_repo_base()
+
+    local cpos = vim.fn.getpos(".")
+
+    pcall(vim.cmd("%!sh -c 'cd " .. base_pos .. " && gofumpt " .. current_file .. "'"))
+
+    vim.fn.setpos(".", cpos)
+    vim.cmd("write")
+end
+
 local M = {}
 
-M.run_import_fix = function()
+local is_formatting = false
+local cooldown = 5
+local last_format_time = 0
+
+M.run_format = function()
+    local current_time = os.time()
+
+    if current_time - last_format_time < cooldown then
+        print("Autocommand on cooldown, skipping format.")
+        return
+    end
+
+    if is_formatting then
+        return
+    end
+    is_formatting = true
+
+    vim.cmd("silent! write")
+    run_go_fumpt()
+    vim.cmd("silent! write")
     run_luno_imports()
+    vim.cmd("silent! write")
+
+    last_format_time = current_time
+
+    is_formatting = false
 end
 
 M.run_diagnostics = function()

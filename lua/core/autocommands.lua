@@ -51,6 +51,9 @@ now(function()
 
             for _, c in pairs(clients) do
                 if vim.lsp.buf_is_attached(0, c.id) then
+                    if vim.bo.filetype == "go" then
+                        require("modules.luno").run_format()
+                    end
                     pcall(vim.lsp.buf.format)
                 end
             end

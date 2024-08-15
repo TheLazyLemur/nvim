@@ -11,7 +11,7 @@ local modules = {
         m = "modules.luno",
         config = function()
             local l = require("modules.luno")
-            vim.keymap.set("n", "<leader>li", l.run_import_fix)
+            vim.keymap.set("n", "<leader>li", l.run_format)
             vim.keymap.set("n", "<leader>ld", l.run_diagnostics)
         end
     },
