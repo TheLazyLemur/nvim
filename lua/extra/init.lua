@@ -2,12 +2,8 @@ local add, now, later = MiniDeps.add, MiniDeps.now, MiniDeps.later
 
 local plugins = {
   require("extra.plugins.trouble"),
-  require("extra.plugins.flash"),
   require("extra.plugins.gonvim"),
   require("extra.plugins.debug"),
-  require("extra.plugins.supermaven"),
-  require("extra.plugins.nui"),
-  require("extra.plugins.neotree"),
   require("extra.plugins.colorschemes"),
 }
 

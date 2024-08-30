@@ -6,8 +6,6 @@ return {
     "nvim-treesitter/nvim-treesitter",
   },
   config = function()
-    require("go").setup({
-    })
-    _GO_NVIM_CFG.lsp_inlay_hints.enable = false
+    require("go").setup({})
   end,
 }

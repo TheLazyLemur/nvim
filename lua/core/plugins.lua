@@ -23,7 +23,6 @@ add({
   source = "nvim-telescope/telescope.nvim",
   depends = {
     "nvim-lua/plenary.nvim",
-    "nvim-telescope/telescope-fzf-native.nvim",
     "nvim-telescope/telescope-ui-select.nvim",
     "nvim-tree/nvim-web-devicons"
   },
@@ -40,7 +39,6 @@ require("telescope").setup {
   },
 }
 
-pcall(require("telescope").load_extension, "fzf")
 pcall(require("telescope").load_extension, "ui-select")
 
 add({
@@ -83,9 +81,6 @@ require("mason-lspconfig").setup {
   },
 }
 
-add({
-  source = "echasnovski/mini.completion",
-})
 require('mini.completion').setup()
 
 add({
