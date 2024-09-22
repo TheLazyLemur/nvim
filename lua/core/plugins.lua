@@ -76,6 +76,20 @@ require("mason-lspconfig").setup {
     function(server_name)
       local server = servers[server_name] or {}
       server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
+      -- if server_name == "gopls" then
+      --   server.cmd = { "gopls", "-remote=:37374", "-logfile=auto", "-debug=:0", "-rpc.trace" }
+      -- end
+      if server_name == "gopls" then
+        server.cmd = { "gopls" }
+        -- FIXME: workaround for https://github.com/neovim/neovim/issues/28058
+        server.workspace = {
+          didChangeWatchedFiles = {
+            dynamicRegistration = false,
+            relativePatternSupport = false,
+          },
+        }
+        server.root_dir = function() return vim.fs.dirname(vim.fs.find({ "go.mod" }, { upward = true })[1]) end
+      end
       require("lspconfig")[server_name].setup(server)
     end,
   },
@@ -105,3 +119,10 @@ statusline.setup {
 statusline.section_location = function()
   return "%2l:%-2v"
 end
+
+require('mini.misc').setup()
+require("mini.bufremove").setup()
+require("mini.tabline").setup()
+require("mini.misc").setup()
+require("mini.misc").setup_restore_cursor()
+require("mini.comment").setup()
