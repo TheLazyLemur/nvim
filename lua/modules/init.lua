@@ -8,14 +8,6 @@ local modules = {
         end
     },
     {
-        m = "modules.luno",
-        config = function()
-            local l = require("modules.luno")
-            vim.keymap.set("n", "<leader>li", l.run_format)
-            vim.keymap.set("n", "<leader>ld", l.run_diagnostics)
-        end
-    },
-    {
         m = "modules.nterm",
         config = function()
             require("modules.nterm").setup()
