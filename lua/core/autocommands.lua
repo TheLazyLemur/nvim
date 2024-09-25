@@ -28,6 +28,23 @@ now(function()
                     callback = vim.lsp.buf.clear_references,
                 })
             end
+
+            vim.api.nvim_create_autocmd("BufWritePre", {
+                group = vim.api.nvim_create_augroup("user-lsp-autofmt", { clear = true }),
+                pattern = "*",
+                callback = function(_)
+                    local ok, clients = pcall(vim.lsp.get_clients)
+                    if not ok then
+                        return
+                    end
+
+                    for _, c in pairs(clients) do
+                        if vim.lsp.buf_is_attached(0, c.id) then
+                            pcall(vim.lsp.buf.format)
+                        end
+                    end
+                end
+            })
         end,
     })
 
@@ -37,23 +54,6 @@ now(function()
         callback = function(_)
             vim.cmd("setfiletype templ")
             vim.api.nvim_set_option_value("commentstring", "// %s", { scope = "local", })
-        end
-    })
-
-    vim.api.nvim_create_autocmd("BufWritePre", {
-        group = vim.api.nvim_create_augroup("user-lsp-autofmt", { clear = true }),
-        pattern = "*",
-        callback = function(_)
-            local ok, clients = pcall(vim.lsp.get_clients)
-            if not ok then
-                return
-            end
-
-            for _, c in pairs(clients) do
-                if vim.lsp.buf_is_attached(0, c.id) then
-                    pcall(vim.lsp.buf.format)
-                end
-            end
         end
     })
 end)
