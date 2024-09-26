@@ -3,9 +3,6 @@ local dap = require 'dap'
 local dapui = require 'dapui'
 
 later(function()
-  vim.keymap.set("n", "<leader>jj", function() require("flash").jump() end)
-  vim.keymap.set("n", "<leader>jt", function() require("flash").treesitter() end)
-
   vim.keymap.set("n", "<leader>xx", ":Trouble diagnostics toggle<cr>")
   vim.keymap.set("n", "<leader>xb", ":Trouble diagnostics toggle filter.buf=0<cr>")
 

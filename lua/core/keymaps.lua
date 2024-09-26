@@ -11,8 +11,6 @@ now(function()
     vim.fn.setreg('+', last_directory .. "/" .. relative_path .. ":" .. line_number)
   end)
 
-  vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
-
   vim.keymap.set("n", "<leader>z", MiniMisc.zoom)
   vim.keymap.set("n", "<leader>bd", MiniBufremove.delete)
 
