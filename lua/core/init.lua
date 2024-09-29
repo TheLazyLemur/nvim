@@ -1,7 +1,21 @@
 require("core.options")
 
-local add, now, later = MiniDeps.add, MiniDeps.now, MiniDeps.later
+local mini_indentscope = require("mini.indentscope")
+mini_indentscope.setup()
 
+local mini_misc = require("mini.misc")
+mini_misc.setup()
+mini_misc.setup_restore_cursor()
+mini_misc.setup_termbg_sync()
+
+local mini_comment = require("mini.comment")
+mini_comment.setup()
+
+local mini_icons = require("mini.icons")
+mini_icons.setup()
+mini_icons.mock_nvim_web_devicons()
+
+local add, now, later = MiniDeps.add, MiniDeps.now, MiniDeps.later
 
 local plugins = {
     require("core.plugins.vimsleuth"),
@@ -25,17 +39,7 @@ for _, plugin in ipairs(plugins) do
     end
 end
 
-
 require('core.statusline')
-
-require('mini.misc').setup()
-require("mini.bufremove").setup()
-require("mini.tabline").setup({
-    set_vim_settings = false,
-})
-require("mini.misc").setup()
-require("mini.misc").setup_restore_cursor()
-require("mini.comment").setup()
 
 require("core.keymaps")
 require("core.autocommands")

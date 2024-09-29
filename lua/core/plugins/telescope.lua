@@ -3,7 +3,6 @@ return {
     depends = {
         "nvim-lua/plenary.nvim",
         "nvim-telescope/telescope-ui-select.nvim",
-        "nvim-tree/nvim-web-devicons"
     },
     version = false,
     hooks = {

@@ -12,7 +12,6 @@ now(function()
   end)
 
   vim.keymap.set("n", "<leader>z", MiniMisc.zoom)
-  vim.keymap.set("n", "<leader>bd", MiniBufremove.delete)
 
   vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous [D]iagnostic message" })
   vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next [D]iagnostic message" })
