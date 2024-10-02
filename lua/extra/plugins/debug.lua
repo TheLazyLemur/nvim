@@ -16,6 +16,8 @@ return {
   },
   config = function()
     vim.fn.sign_define('DapBreakpoint', { text = " ", texthl = 'error', linehl = 'error', numhl = 'error' })
+    vim.fn.sign_define('DapBreakpointCondition',
+      { text = " ", texthl = 'warn', linehl = 'warn', numhl = 'warn' })
 
     local dap = require 'dap'
     local dapui = require 'dapui'

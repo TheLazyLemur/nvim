@@ -19,6 +19,7 @@ local add, now, later = MiniDeps.add, MiniDeps.now, MiniDeps.later
 
 local plugins = {
     require("core.plugins.vimsleuth"),
+    require("core.plugins.nvimtree"),
     require("core.plugins.gitsigns"),
     require("core.plugins.treesitter"),
     require("core.plugins.lsp"),

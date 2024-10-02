@@ -6,17 +6,16 @@ later(function()
   vim.keymap.set("n", "<leader>xx", ":Trouble diagnostics toggle<cr>")
   vim.keymap.set("n", "<leader>xb", ":Trouble diagnostics toggle filter.buf=0<cr>")
 
-  vim.keymap.set("n", "<leader>tt", ":Neotree<cr>")
+  vim.keymap.set('n', '<F5>', dap.continue)
+  vim.keymap.set('n', '<F1>', dap.step_into)
+  vim.keymap.set('n', '<F2>', dap.step_over)
+  vim.keymap.set('n', '<F3>', dap.step_out)
+  vim.keymap.set('n', '<F7>', dapui.toggle)
 
-  vim.keymap.set('n', '<F5>', dap.continue, { desc = 'Debug: Start/Continue' })
-  vim.keymap.set('n', '<F1>', dap.step_into, { desc = 'Debug: Step Into' })
-  vim.keymap.set('n', '<F2>', dap.step_over, { desc = 'Debug: Step Over' })
-  vim.keymap.set('n', '<F3>', dap.step_out, { desc = 'Debug: Step Out' })
-  vim.keymap.set('n', '<leader>b', dap.toggle_breakpoint, { desc = 'Debug: Toggle Breakpoint' })
+  vim.keymap.set('n', '<leader>b', dap.toggle_breakpoint)
   vim.keymap.set('n', '<leader>B', function()
     dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ')
   end, { desc = 'Debug: Set Breakpoint' })
-  vim.keymap.set('n', '<F7>', dapui.toggle, { desc = 'Debug: See last session result.' })
 end)
 
 vim.api.nvim_create_autocmd("LspAttach", {
